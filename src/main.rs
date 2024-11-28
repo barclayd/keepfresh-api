@@ -1,5 +1,6 @@
 use axum::{response::Json, routing::get, Router};
-
+use dotenv::dotenv;
+use std::env;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -29,11 +30,16 @@ async fn json() -> Json<Vec<GroceryItem>> {
 
 #[tokio::main]
 async fn main() {
+    dotenv().ok();
+
+    let port: u16 = env::var("PORT").unwrap_or("3001".to_string()).parse().expect("PORT must be a number");
+
     let app = Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/health", get(|| async { "OK" }))
         .route("/api/v1/groceries", get(json));
 
-    let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
+    let listener = tokio::net::TcpListener::bind(format!("0.0.0.0:{}", port)).await.unwrap();
+    println!("Server running at http://{} 🚀", listener.local_addr().unwrap());
     axum::serve(listener, app).await.unwrap();
 }

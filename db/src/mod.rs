@@ -1,3 +1,1 @@
-mod lib;
-
-pub use lib::connect_to_local_db;
+pub fn connect_to_local_db() {}

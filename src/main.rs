@@ -8,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::{Validate, ValidationError};
 
+use db::connect_to_local_db;
+
 #[derive(Serialize, Deserialize, Debug)]
 struct GroceryItem {
     id: String,
@@ -101,6 +103,10 @@ async fn json() -> Json<Vec<GroceryItem>> {
 #[tokio::main]
 async fn main() {
     dotenv().ok();
+
+    let db_endpoint_url: String = env::var("DYNAMODB_ENDPOINT_URL").unwrap_or("http://localhost:8000".to_string()).parse().expect("DYNAMODB_ENDPOINT_URL is not valid");
+
+    connect_to_local_db(db_endpoint_url).await;
 
     let port: u16 = env::var("PORT").unwrap_or("3001".to_string()).parse().expect("PORT must be a number");
 

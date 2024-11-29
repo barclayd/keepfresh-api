@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 use validator::{Validate, ValidationError};
 
-use db::connect_to_local_db;
+use db::{connect_to_local_db, create_table_if_not_exists};
 
 #[derive(Serialize, Deserialize, Debug)]
 struct GroceryItem {
@@ -106,7 +106,8 @@ async fn main() {
 
     let db_endpoint_url: String = env::var("DYNAMODB_ENDPOINT_URL").unwrap_or("http://localhost:8000".to_string()).parse().expect("DYNAMODB_ENDPOINT_URL is not valid");
 
-    connect_to_local_db(db_endpoint_url).await;
+    let client = connect_to_local_db(db_endpoint_url).await;
+    create_table_if_not_exists(&client).await.expect("Unable to create table");
 
     let port: u16 = env::var("PORT").unwrap_or("3001".to_string()).parse().expect("PORT must be a number");
 

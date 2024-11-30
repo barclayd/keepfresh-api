@@ -12,3 +12,4 @@ tokio = { version = "1", features = ["full"] }
 validator = { version = "0.19.0", features = ["derive"] }
 db = { path = "db" }
 uuid = { version = "1.11.0", features = ["v4"] }
+aws-sdk-dynamodb = "1.54.0"

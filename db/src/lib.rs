@@ -7,13 +7,13 @@ use aws_sdk_dynamodb::types::{
 };
 use tracing_subscriber::fmt;
 
-pub async fn connect_to_local_db(endpoint_url: String) -> Client {
+pub async fn connect_to_local_db(endpoint_url: String, region: String) -> Client {
     fmt::init();
 
     let config = aws_config::defaults(aws_config::BehaviorVersion::latest())
         .test_credentials()
         .endpoint_url(endpoint_url)
-        .region(aws_config::Region::new("eu-west-2"))
+        .region(aws_config::Region::new(region))
         .load()
         .await;
     let dynamodb_local_config = aws_sdk_dynamodb::config::Builder::from(&config).build();
@@ -23,8 +23,7 @@ pub async fn connect_to_local_db(endpoint_url: String) -> Client {
     return client;
 }
 
-pub async fn create_table_if_not_exists(client: &Client) -> Result<bool, Error> {
-    let table_name = String::from("FoodWasteTable");
+pub async fn create_table_if_not_exists(client: &Client, table_name: String) -> Result<bool, Error> {
     let key = "id";
 
     let list_resp = client.list_tables().send().await;

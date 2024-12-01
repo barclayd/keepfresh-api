@@ -1,17 +1,19 @@
 use aws_config;
-use aws_sdk_dynamodb::{
-Client, Error
+use aws_sdk_dynamodb::types::{
+    AttributeDefinition, AttributeValue, KeySchemaElement, KeyType, ProvisionedThroughput,
+    ScalarAttributeType,
 };
-use aws_sdk_dynamodb::types::{AttributeDefinition, AttributeValue, KeySchemaElement, KeyType, ProvisionedThroughput, ScalarAttributeType};
-use serde_dynamo::from_items;
-use tracing_subscriber::fmt;
+use aws_sdk_dynamodb::{Client, Error};
 use serde::Serialize;
+use serde_dynamo::from_items;
 use shared_types::GroceryItem;
+use std::collections::HashMap;
+use tracing_subscriber::fmt;
 
 #[derive(Serialize)]
 pub enum DBError {
     AwsSdkError(String),
-    Other(String)
+    Other(String),
 }
 
 impl DBError {
@@ -39,21 +41,22 @@ pub async fn connect_to_local_db(endpoint_url: String, region: String) -> Client
     client
 }
 
-pub async fn create_table_if_not_exists(client: &Client, table_name: &String) -> Result<bool, Error> {
+pub async fn create_table_if_not_exists(
+    client: &Client,
+    table_name: &String,
+) -> Result<bool, Error> {
     let key = "id";
 
     let list_resp = client.list_tables().send().await;
 
     match list_resp {
-        Ok(resp) => {
-            match resp.table_names().contains(&table_name) {
-                true => {
-                    println!("\"{}\" table found", table_name);
-                    Ok(true)
-                },
-                false => create_table(client, &table_name, key).await,
+        Ok(resp) => match resp.table_names().contains(&table_name) {
+            true => {
+                println!("\"{}\" table found", table_name);
+                Ok(true)
             }
-        }
+            false => create_table(client, &table_name, key).await,
+        },
         Err(e) => {
             eprintln!("Got an error creating table:");
             eprintln!("{}", e);
@@ -104,14 +107,110 @@ pub async fn create_table(client: &Client, table_name: &str, key: &str) -> Resul
 }
 
 pub async fn scan_items(client: &Client, table_name: &str) -> Result<Vec<GroceryItem>, DBError> {
-    let result = client.scan().table_name(table_name).send().await.map_err(|err| DBError::AwsSdkError(err.to_string()))?;
+    let result = client
+        .scan()
+        .table_name(table_name)
+        .send()
+        .await
+        .map_err(|err| DBError::AwsSdkError(err.to_string()))?;
     let items = result.items();
-    let grocery_items: Vec<GroceryItem> = from_items(items.to_vec())
-        .map_err(|e| DBError::Other(e.to_string()))?;
+    let grocery_items: Vec<GroceryItem> =
+        from_items(items.to_vec()).map_err(|e| DBError::Other(e.to_string()))?;
     Ok(grocery_items)
 }
 
-pub async fn delete_item(client: &Client, table_name: &str, grocery_item_id: &str) -> Result<bool, DBError> {
+pub async fn get_item(
+    client: &Client,
+    table_name: &str,
+    grocery_item_id: &str,
+) -> Result<Option<GroceryItem>, DBError> {
+    let get_item_output = client
+        .get_item()
+        .table_name(table_name)
+        .key("id", AttributeValue::S(grocery_item_id.into()))
+        .send()
+        .await
+        .map_err(|e| DBError::AwsSdkError(e.to_string()))?;
+
+    match get_item_output.item() {
+        Some(item) => {
+            let grocery_item: GroceryItem =
+                serde_dynamo::from_item(item.clone()).map_err(|e| DBError::Other(e.to_string()))?;
+            Ok(Some(grocery_item))
+        }
+        None => Ok(None),
+    }
+}
+
+pub async fn put_item(
+    client: &Client,
+    table_name: &str,
+    grocery_item: &GroceryItem,
+) -> Result<GroceryItem, DBError> {
+    let items = [
+        ("id", AttributeValue::S(grocery_item.id.to_string())),
+        ("name", AttributeValue::S(grocery_item.name.to_string())),
+        ("brand", AttributeValue::S(grocery_item.brand.to_string())),
+        (
+            "category",
+            AttributeValue::S(grocery_item.category.to_string()),
+        ),
+        ("amount", AttributeValue::N(grocery_item.amount.to_string())),
+        (
+            "expiry_date",
+            AttributeValue::S(grocery_item.expiry_date.clone().unwrap_or_default()),
+        ),
+    ];
+
+    let mut request = client.put_item().table_name(table_name);
+    for (key, value) in items {
+        request = request.item(key, value);
+    }
+
+    request
+        .send()
+        .await
+        .map_err(|e| (DBError::AwsSdkError(e.to_string())))?;
+
+    Ok(grocery_item.clone())
+}
+
+pub async fn update_item(
+    client: &Client,
+    table_name: &str,
+    id: &str,
+    updates: HashMap<String, AttributeValue>,
+) -> Result<(), DBError> {
+    let attribute_updates = updates
+        .into_iter()
+        .map(|(key, value)| {
+            (
+                key,
+                aws_sdk_dynamodb::types::AttributeValueUpdate::builder()
+                    .set_value(Some(value))
+                    .action(aws_sdk_dynamodb::types::AttributeAction::Put)
+                    .build(),
+            )
+        })
+        .collect();
+
+    client
+        .update_item()
+        .table_name(table_name)
+        .key("id", AttributeValue::S(id.to_string()))
+        .set_attribute_updates(Some(attribute_updates))
+        .send()
+        .await
+        .map_err(|e| DBError::AwsSdkError(e.to_string()))?;
+
+    Ok(())
+}
+
+pub async fn delete_item(
+    client: &Client,
+    table_name: &str,
+    grocery_item_id: &str,
+) -> Result<bool, DBError> {
     let result = client
         .delete_item()
         .table_name(table_name)

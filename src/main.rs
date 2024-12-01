@@ -1,28 +1,23 @@
+use aws_sdk_dynamodb::Client;
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
-use axum::{extract::State, extract::Path, response::Json, routing::get, routing::delete, Router};
+use axum::{extract::Path, extract::State, response::Json, routing::get, Router};
 use chrono::DateTime;
+use db::{
+    connect_to_local_db, create_table_if_not_exists, delete_item, get_item, put_item, scan_items,
+    update_item,
+};
 use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
+use serde_json::{to_value, Value};
+use shared_types::{GroceryItem, GroceryItemUpdate, GroceryItemUpdateRequest};
 use std::env;
 use uuid::Uuid;
 use validator::{Validate, ValidationError};
-
-use aws_sdk_dynamodb::types::AttributeValue;
-use aws_sdk_dynamodb::Client;
-use db::{connect_to_local_db, create_table_if_not_exists, delete_item, scan_items};
-use shared_types::GroceryItem;
 
 #[derive(Clone)]
 struct AppState {
     client: Client,
     table_name: String,
-}
-
-#[derive(Serialize)]
-struct GroceryResponse {
-    id: String,
-    message: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -73,7 +68,7 @@ struct CreateGroceryItem {
 async fn create_grocery_item(
     State(state): State<AppState>,
     Json(payload): Json<CreateGroceryItem>,
-) -> Result<impl IntoResponse, (StatusCode, Json<ApiError>)> {
+) -> Result<(StatusCode, Json<GroceryItem>), (StatusCode, Json<ApiError>)> {
     if let Err(validation_errors) = payload.validate() {
         return Err((
             StatusCode::BAD_REQUEST,
@@ -85,40 +80,107 @@ async fn create_grocery_item(
 
     let id = Uuid::new_v4().to_string();
 
-    let request = state
-        .client
-        .put_item()
-        .table_name(state.table_name)
-        .item("id", AttributeValue::S(id.clone()))
-        .item("name", AttributeValue::S(payload.name.clone()))
-        .item("brand", AttributeValue::S(payload.brand.clone()))
-        .item("category", AttributeValue::S(payload.category.clone()))
-        .item("amount", AttributeValue::N(payload.amount.to_string()));
-
-    request.send().await.map_err(|e| (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        Json(ApiError {
-            message: format!("Database error: {}", e),
-        }),
-    ))?;
-
-    let response = GroceryResponse {
+    let grocery_item = GroceryItem {
         id,
-        message: format!("Created grocery item: {}", payload.name),
+        name: payload.name,
+        brand: payload.brand,
+        category: payload.category,
+        amount: payload.amount,
+        expiry_date: payload.expiry_date,
     };
 
-    Ok((StatusCode::CREATED, Json(response)))
+    match put_item(&state.client, &state.table_name, &grocery_item).await {
+        Ok(item) => Ok((StatusCode::CREATED, Json(item))),
+        Err(e) => Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiError {
+                message: e.to_message(),
+            }),
+        )),
+    }
 }
 
-async fn get_grocery_items(State(state): State<AppState>) -> Result<Json<Vec<GroceryItem>>, (StatusCode, Json<ApiError>)> {
+async fn get_grocery_items(
+    State(state): State<AppState>,
+) -> Result<Json<Vec<GroceryItem>>, (StatusCode, Json<ApiError>)> {
     match scan_items(&state.client, &state.table_name).await {
         Ok(items) => Ok(Json(items)),
         Err(e) => Err((
             StatusCode::BAD_REQUEST,
             Json(ApiError {
                 message: e.to_message(),
-            })
-        ))
+            }),
+        )),
+    }
+}
+
+async fn get_grocery_item(
+    State(state): State<AppState>,
+    Path(grocery_item_id): Path<String>,
+) -> Result<Json<GroceryItem>, (StatusCode, Json<ApiError>)> {
+    match get_item(&state.client, &state.table_name, &grocery_item_id).await {
+        Ok(Some(item)) => Ok(Json(item)),
+        Ok(None) => Err((
+            StatusCode::NOT_FOUND,
+            Json(ApiError {
+                message: format!("Grocery item with id {} not found", grocery_item_id),
+            }),
+        )),
+        Err(e) => Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiError {
+                message: e.to_message(),
+            }),
+        )),
+    }
+}
+
+async fn update_grocery_item(
+    State(state): State<AppState>,
+    Path(grocery_item_id): Path<String>,
+    Json(payload): Json<GroceryItemUpdateRequest>,
+) -> Result<StatusCode, (StatusCode, Json<ApiError>)> {
+    let mut builder = GroceryItemUpdate::new();
+
+    let value = to_value(payload).map_err(|e| {
+        (
+            StatusCode::BAD_REQUEST,
+            Json(ApiError {
+                message: e.to_string(),
+            }),
+        )
+    })?;
+
+    let payload_map = value.as_object().ok_or((
+        StatusCode::BAD_REQUEST,
+        Json(ApiError {
+            message: "Invalid payload structure".to_string(),
+        }),
+    ))?;
+
+    for (key, value) in payload_map {
+        if !value.is_null() {
+            match (key.as_str(), value) {
+                ("name", Value::String(v)) => builder = builder.name(v),
+                ("brand", Value::String(v)) => builder = builder.brand(v),
+                ("category", Value::String(v)) => builder = builder.category(v),
+                ("amount", Value::Number(v)) => builder = builder.amount(v.as_f64().unwrap()),
+                ("expiry_date", Value::String(v)) => builder = builder.expiry_date(v),
+                _ => continue,
+            }
+        }
+    }
+
+    let updates = builder.build();
+
+    match update_item(&state.client, &state.table_name, &grocery_item_id, updates).await {
+        Ok(()) => Ok(StatusCode::NO_CONTENT),
+        Err(e) => Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiError {
+                message: e.to_message(),
+            }),
+        )),
     }
 }
 
@@ -130,19 +192,19 @@ async fn delete_grocery_item(
         Ok(true) => {
             println!("Item deleted successfully");
             Ok(StatusCode::NO_CONTENT)
-        },
+        }
         Ok(false) => Err((
             StatusCode::NOT_FOUND,
             Json(ApiError {
                 message: format!("Grocery item with id {} not found", grocery_item_id),
-            })
+            }),
         )),
         Err(e) => Err((
             StatusCode::BAD_REQUEST,
             Json(ApiError {
                 message: e.to_message(),
-            })
-        ))
+            }),
+        )),
     }
 }
 
@@ -150,8 +212,16 @@ fn routes() -> Router<AppState> {
     Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/health", get(|| async { "OK" }))
-        .route("/api/v1/groceries", get(get_grocery_items).post(create_grocery_item))
-        .route("/api/v1/groceries/:grocery_item_id", delete(delete_grocery_item))
+        .route(
+            "/api/v1/groceries",
+            get(get_grocery_items).post(create_grocery_item),
+        )
+        .route(
+            "/api/v1/groceries/:grocery_item_id",
+            get(get_grocery_item)
+                .patch(update_grocery_item)
+                .delete(delete_grocery_item),
+        )
 }
 
 #[tokio::main]

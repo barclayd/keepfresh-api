@@ -2,9 +2,7 @@ use aws_config;
 use aws_sdk_dynamodb::{
 Client, Error
 };
-use aws_sdk_dynamodb::types::{
-    AttributeDefinition, KeySchemaElement, KeyType, ProvisionedThroughput, ScalarAttributeType
-};
+use aws_sdk_dynamodb::types::{AttributeDefinition, AttributeValue, KeySchemaElement, KeyType, ProvisionedThroughput, ScalarAttributeType};
 use serde_dynamo::from_items;
 use tracing_subscriber::fmt;
 use serde::Serialize;
@@ -41,7 +39,7 @@ pub async fn connect_to_local_db(endpoint_url: String, region: String) -> Client
     client
 }
 
-pub async fn create_table_if_not_exists(client: &Client, table_name: String) -> Result<bool, Error> {
+pub async fn create_table_if_not_exists(client: &Client, table_name: &String) -> Result<bool, Error> {
     let key = "id";
 
     let list_resp = client.list_tables().send().await;
@@ -105,10 +103,23 @@ pub async fn create_table(client: &Client, table_name: &str, key: &str) -> Resul
     }
 }
 
-pub async fn scan_grocery_items(client: &Client, table_name: &str) -> Result<Vec<GroceryItem>, DBError> {
+pub async fn scan_items(client: &Client, table_name: &str) -> Result<Vec<GroceryItem>, DBError> {
     let result = client.scan().table_name(table_name).send().await.map_err(|err| DBError::AwsSdkError(err.to_string()))?;
     let items = result.items();
     let grocery_items: Vec<GroceryItem> = from_items(items.to_vec())
         .map_err(|e| DBError::Other(e.to_string()))?;
     Ok(grocery_items)
+}
+
+pub async fn delete_item(client: &Client, table_name: &str, grocery_item_id: &str) -> Result<bool, DBError> {
+    let result = client
+        .delete_item()
+        .table_name(table_name)
+        .key("id", AttributeValue::S(grocery_item_id.into()))
+        .return_values(aws_sdk_dynamodb::types::ReturnValue::AllOld)
+        .send()
+        .await
+        .map_err(|e| DBError::AwsSdkError(e.to_string()))?;
+
+    Ok(result.attributes().is_some())
 }

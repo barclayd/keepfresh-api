@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::{extract::State, response::Json, routing::get, Router};
+use axum::{extract::State, extract::Path, response::Json, routing::get, routing::delete, Router};
 use chrono::DateTime;
 use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
@@ -10,12 +10,13 @@ use validator::{Validate, ValidationError};
 
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
-use db::{connect_to_local_db, create_table_if_not_exists, scan_grocery_items};
+use db::{connect_to_local_db, create_table_if_not_exists, delete_item, scan_items};
 use shared_types::GroceryItem;
 
 #[derive(Clone)]
 struct AppState {
     client: Client,
+    table_name: String,
 }
 
 #[derive(Serialize)]
@@ -73,9 +74,6 @@ async fn create_grocery_item(
     State(state): State<AppState>,
     Json(payload): Json<CreateGroceryItem>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ApiError>)> {
-    let table_name: String =
-        env::var("FOOD_WASTE_TABLE_NAME").unwrap_or("FoodWasteTable".to_string());
-
     if let Err(validation_errors) = payload.validate() {
         return Err((
             StatusCode::BAD_REQUEST,
@@ -90,7 +88,7 @@ async fn create_grocery_item(
     let request = state
         .client
         .put_item()
-        .table_name(table_name)
+        .table_name(state.table_name)
         .item("id", AttributeValue::S(id.clone()))
         .item("name", AttributeValue::S(payload.name.clone()))
         .item("brand", AttributeValue::S(payload.brand.clone()))
@@ -113,11 +111,32 @@ async fn create_grocery_item(
 }
 
 async fn get_grocery_items(State(state): State<AppState>) -> Result<Json<Vec<GroceryItem>>, (StatusCode, Json<ApiError>)> {
-    let table_name: String =
-        env::var("FOOD_WASTE_TABLE_NAME").unwrap_or("FOOD_WASTE_TABLE_NAME".to_string());
-
-    match scan_grocery_items(&state.client, &table_name).await {
+    match scan_items(&state.client, &state.table_name).await {
         Ok(items) => Ok(Json(items)),
+        Err(e) => Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiError {
+                message: e.to_message(),
+            })
+        ))
+    }
+}
+
+async fn delete_grocery_item(
+    State(state): State<AppState>,
+    Path(grocery_item_id): Path<String>,
+) -> Result<StatusCode, (StatusCode, Json<ApiError>)> {
+    match delete_item(&state.client, &state.table_name, &grocery_item_id).await {
+        Ok(true) => {
+            println!("Item deleted successfully");
+            Ok(StatusCode::NO_CONTENT)
+        },
+        Ok(false) => Err((
+            StatusCode::NOT_FOUND,
+            Json(ApiError {
+                message: format!("Grocery item with id {} not found", grocery_item_id),
+            })
+        )),
         Err(e) => Err((
             StatusCode::BAD_REQUEST,
             Json(ApiError {
@@ -132,6 +151,7 @@ fn routes() -> Router<AppState> {
         .route("/", get(|| async { "Hello, World!" }))
         .route("/health", get(|| async { "OK" }))
         .route("/api/v1/groceries", get(get_grocery_items).post(create_grocery_item))
+        .route("/api/v1/groceries/:grocery_item_id", delete(delete_grocery_item))
 }
 
 #[tokio::main]
@@ -147,7 +167,7 @@ async fn main() {
     let region: String = env::var("REGION").unwrap_or("eu-west-2".to_string());
 
     let client = connect_to_local_db(db_endpoint_url, region).await;
-    create_table_if_not_exists(&client, table_name)
+    create_table_if_not_exists(&client, &table_name)
         .await
         .expect("Unable to create table");
 
@@ -164,7 +184,7 @@ async fn main() {
         listener.local_addr().unwrap()
     );
 
-    let routes = routes().with_state(AppState { client });
+    let routes = routes().with_state(AppState { client, table_name });
 
     axum::serve(listener, routes).await.unwrap();
 }

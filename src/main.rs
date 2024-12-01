@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use axum::{extract::State, extract::Path, response::Json, routing::get, routing::delete, Router};
+use axum::{extract::State, extract::Path, response::Json, routing::get, Router};
 use chrono::DateTime;
 use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
@@ -10,7 +10,7 @@ use validator::{Validate, ValidationError};
 
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
-use db::{connect_to_local_db, create_table_if_not_exists, delete_item, scan_items};
+use db::{connect_to_local_db, create_table_if_not_exists, delete_item, scan_items, get_item};
 use shared_types::GroceryItem;
 
 #[derive(Clone)]
@@ -122,6 +122,27 @@ async fn get_grocery_items(State(state): State<AppState>) -> Result<Json<Vec<Gro
     }
 }
 
+async fn get_grocery_item(
+    State(state): State<AppState>,
+    Path(grocery_item_id): Path<String>,
+) -> Result<Json<GroceryItem>, (StatusCode, Json<ApiError>)> {
+    match get_item(&state.client, &state.table_name, &grocery_item_id).await {
+        Ok(Some(item)) => Ok(Json(item)),
+        Ok(None) => Err((
+            StatusCode::NOT_FOUND,
+            Json(ApiError {
+                message: format!("Grocery item with id {} not found", grocery_item_id),
+            })
+        )),
+        Err(e) => Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiError {
+                message: e.to_message(),
+            })
+        ))
+    }
+}
+
 async fn delete_grocery_item(
     State(state): State<AppState>,
     Path(grocery_item_id): Path<String>,
@@ -151,7 +172,7 @@ fn routes() -> Router<AppState> {
         .route("/", get(|| async { "Hello, World!" }))
         .route("/health", get(|| async { "OK" }))
         .route("/api/v1/groceries", get(get_grocery_items).post(create_grocery_item))
-        .route("/api/v1/groceries/:grocery_item_id", delete(delete_grocery_item))
+        .route("/api/v1/groceries/:grocery_item_id", get(get_grocery_item).delete(delete_grocery_item))
 }
 
 #[tokio::main]

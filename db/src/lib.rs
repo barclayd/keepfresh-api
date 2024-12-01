@@ -111,6 +111,19 @@ pub async fn scan_items(client: &Client, table_name: &str) -> Result<Vec<Grocery
     Ok(grocery_items)
 }
 
+pub async fn get_item(client: &Client, table_name: &str, grocery_item_id: &str) -> Result<Option<GroceryItem>, DBError> {
+    let get_item_output = client.get_item().table_name(table_name).key("id", AttributeValue::S(grocery_item_id.into())).send().await.map_err(|e| DBError::AwsSdkError(e.to_string()))?;
+
+    match get_item_output.item() {
+        Some(item) => {
+            let grocery_item: GroceryItem = serde_dynamo::from_item(item.clone())
+                .map_err(|e| DBError::Other(e.to_string()))?;
+            Ok(Some(grocery_item))
+        }
+        None => Ok(None)
+    }
+}
+
 pub async fn delete_item(client: &Client, table_name: &str, grocery_item_id: &str) -> Result<bool, DBError> {
     let result = client
         .delete_item()

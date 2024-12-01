@@ -85,9 +85,6 @@ async fn create_grocery_item(
         expiry_date: payload.expiry_date,
     };
 
-    println!("grocery item: {:?}", grocery_item);
-
-
     match put_item(&state.client, &state.table_name, &grocery_item).await {
         Ok(item) => {
             Ok((StatusCode::CREATED, Json(item)))

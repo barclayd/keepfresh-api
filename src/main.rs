@@ -10,23 +10,12 @@ use validator::{Validate, ValidationError};
 
 use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
-use db::{connect_to_local_db, create_table_if_not_exists};
+use db::{connect_to_local_db, create_table_if_not_exists, scan_grocery_items};
+use shared_types::GroceryItem;
 
 #[derive(Clone)]
 struct AppState {
     client: Client,
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct GroceryItem {
-    id: String,
-    icon: String,
-    name: String,
-    category: String,
-    brand: String,
-    amount: i32,
-    waste_score: i32,
-    expiry_date: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -123,24 +112,26 @@ async fn create_grocery_item(
     Ok((StatusCode::CREATED, Json(response)))
 }
 
-async fn json() -> Json<Vec<GroceryItem>> {
-    Json(vec![GroceryItem {
-        id: "1".to_string(),
-        icon: "checkbox".to_string(),
-        name: "Apple".to_string(),
-        category: "Fruit".to_string(),
-        brand: "Unknown".to_string(),
-        amount: 1,
-        waste_score: 1,
-        expiry_date: Some("2024-12-31".to_string()),
-    }])
+async fn get_grocery_items(State(state): State<AppState>) -> Result<Json<Vec<GroceryItem>>, (StatusCode, Json<ApiError>)> {
+    let table_name: String =
+        env::var("FOOD_WASTE_TABLE_NAME").unwrap_or("FOOD_WASTE_TABLE_NAME".to_string());
+
+    match scan_grocery_items(&state.client, &table_name).await {
+        Ok(items) => Ok(Json(items)),
+        Err(e) => Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiError {
+                message: e.to_message(),
+            })
+        ))
+    }
 }
 
 fn routes() -> Router<AppState> {
     Router::new()
         .route("/", get(|| async { "Hello, World!" }))
         .route("/health", get(|| async { "OK" }))
-        .route("/api/v1/groceries", get(json).post(create_grocery_item))
+        .route("/api/v1/groceries", get(get_grocery_items).post(create_grocery_item))
 }
 
 #[tokio::main]

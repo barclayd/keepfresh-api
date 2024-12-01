@@ -5,7 +5,25 @@ Client, Error
 use aws_sdk_dynamodb::types::{
     AttributeDefinition, KeySchemaElement, KeyType, ProvisionedThroughput, ScalarAttributeType
 };
+use serde_dynamo::from_items;
 use tracing_subscriber::fmt;
+use serde::Serialize;
+use shared_types::GroceryItem;
+
+#[derive(Serialize)]
+pub enum DBError {
+    AwsSdkError(String),
+    Other(String)
+}
+
+impl DBError {
+    pub fn to_message(self) -> String {
+        match self {
+            DBError::AwsSdkError(msg) => msg,
+            DBError::Other(msg) => msg,
+        }
+    }
+}
 
 pub async fn connect_to_local_db(endpoint_url: String, region: String) -> Client {
     fmt::init();
@@ -20,7 +38,7 @@ pub async fn connect_to_local_db(endpoint_url: String, region: String) -> Client
 
     let client = aws_sdk_dynamodb::Client::from_conf(dynamodb_local_config);
 
-    return client;
+    client
 }
 
 pub async fn create_table_if_not_exists(client: &Client, table_name: String) -> Result<bool, Error> {
@@ -85,4 +103,12 @@ pub async fn create_table(client: &Client, table_name: &str, key: &str) -> Resul
             Err(Error::from(e))
         }
     }
+}
+
+pub async fn scan_grocery_items(client: &Client, table_name: &str) -> Result<Vec<GroceryItem>, DBError> {
+    let result = client.scan().table_name(table_name).send().await.map_err(|err| DBError::AwsSdkError(err.to_string()))?;
+    let items = result.items();
+    let grocery_items: Vec<GroceryItem> = from_items(items.to_vec())
+        .map_err(|e| DBError::Other(e.to_string()))?;
+    Ok(grocery_items)
 }

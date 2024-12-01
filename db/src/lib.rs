@@ -124,6 +124,24 @@ pub async fn get_item(client: &Client, table_name: &str, grocery_item_id: &str) 
     }
 }
 
+pub async fn put_item(client: &Client, table_name: &str, grocery_item: &GroceryItem) -> Result<GroceryItem, DBError> {
+    client
+        .put_item()
+        .table_name(table_name)
+        .item("id", AttributeValue::S(grocery_item.id.to_string()))
+        .item("name", AttributeValue::S(grocery_item.name.to_string()))
+        .item("brand", AttributeValue::S(grocery_item.brand.to_string()))
+        .item("category", AttributeValue::S(grocery_item.category.to_string()))
+        .item("amount", AttributeValue::N(grocery_item.amount.to_string()))
+        .item("expiry_date", AttributeValue::S(grocery_item.expiry_date.clone().unwrap_or_default()))
+        .return_values(aws_sdk_dynamodb::types::ReturnValue::AllOld)
+        .send()
+        .await
+        .map_err(|e| (DBError::AwsSdkError(e.to_string())))?;
+
+    Ok(grocery_item.clone())
+}
+
 pub async fn delete_item(client: &Client, table_name: &str, grocery_item_id: &str) -> Result<bool, DBError> {
     let result = client
         .delete_item()

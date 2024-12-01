@@ -1,5 +1,4 @@
 use axum::http::StatusCode;
-use axum::response::IntoResponse;
 use axum::{extract::State, extract::Path, response::Json, routing::get, Router};
 use chrono::DateTime;
 use dotenv::dotenv;
@@ -7,22 +6,14 @@ use serde::{Deserialize, Serialize};
 use std::env;
 use uuid::Uuid;
 use validator::{Validate, ValidationError};
-
-use aws_sdk_dynamodb::types::AttributeValue;
 use aws_sdk_dynamodb::Client;
-use db::{connect_to_local_db, create_table_if_not_exists, delete_item, scan_items, get_item};
+use db::{connect_to_local_db, create_table_if_not_exists, delete_item, scan_items, get_item, put_item};
 use shared_types::GroceryItem;
 
 #[derive(Clone)]
 struct AppState {
     client: Client,
     table_name: String,
-}
-
-#[derive(Serialize)]
-struct GroceryResponse {
-    id: String,
-    message: String,
 }
 
 #[derive(Debug, Serialize)]
@@ -73,7 +64,7 @@ struct CreateGroceryItem {
 async fn create_grocery_item(
     State(state): State<AppState>,
     Json(payload): Json<CreateGroceryItem>,
-) -> Result<impl IntoResponse, (StatusCode, Json<ApiError>)> {
+) -> Result<(StatusCode, Json<GroceryItem>), (StatusCode, Json<ApiError>)> {
     if let Err(validation_errors) = payload.validate() {
         return Err((
             StatusCode::BAD_REQUEST,
@@ -85,29 +76,29 @@ async fn create_grocery_item(
 
     let id = Uuid::new_v4().to_string();
 
-    let request = state
-        .client
-        .put_item()
-        .table_name(state.table_name)
-        .item("id", AttributeValue::S(id.clone()))
-        .item("name", AttributeValue::S(payload.name.clone()))
-        .item("brand", AttributeValue::S(payload.brand.clone()))
-        .item("category", AttributeValue::S(payload.category.clone()))
-        .item("amount", AttributeValue::N(payload.amount.to_string()));
-
-    request.send().await.map_err(|e| (
-        StatusCode::INTERNAL_SERVER_ERROR,
-        Json(ApiError {
-            message: format!("Database error: {}", e),
-        }),
-    ))?;
-
-    let response = GroceryResponse {
+    let grocery_item = GroceryItem {
         id,
-        message: format!("Created grocery item: {}", payload.name),
+        name: payload.name,
+        brand: payload.brand,
+        category: payload.category,
+        amount: payload.amount,
+        expiry_date: payload.expiry_date,
     };
 
-    Ok((StatusCode::CREATED, Json(response)))
+    println!("grocery item: {:?}", grocery_item);
+
+
+    match put_item(&state.client, &state.table_name, &grocery_item).await {
+        Ok(item) => {
+            Ok((StatusCode::CREATED, Json(item)))
+        },
+        Err(e) => Err((
+            StatusCode::BAD_REQUEST,
+            Json(ApiError {
+                message: e.to_message(),
+            })
+        ))
+    }
 }
 
 async fn get_grocery_items(State(state): State<AppState>) -> Result<Json<Vec<GroceryItem>>, (StatusCode, Json<ApiError>)> {

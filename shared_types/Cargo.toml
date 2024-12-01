@@ -3,4 +3,5 @@ name = "shared_types"
 version = "0.1.0"
 edition = "2021"
 [dependencies]
+aws-sdk-dynamodb = "1.54.0"
 serde = { version = "1.0.215", features = ["derive"] }

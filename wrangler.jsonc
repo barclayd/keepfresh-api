@@ -1,5 +1,5 @@
 {
-  "name": "my-worker",
+  "name": "keepfresh-api",
   "main": "./src/app.ts",
   "compatibility_date": "2025-09-06"
 }

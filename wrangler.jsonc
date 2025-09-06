@@ -1,5 +1,6 @@
 {
   "name": "keepfresh-api",
   "main": "./src/app.ts",
-  "compatibility_date": "2025-09-06"
+  "compatibility_date": "2025-09-06",
+  "compatibility_flags": ["nodejs_compat"]
 }

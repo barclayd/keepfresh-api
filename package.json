@@ -5,13 +5,14 @@
   "private": true,
   "scripts": {
     "dev": "bun --watch run ./src/app.ts",
-    "build": "esbuild ./src/app.ts --bundle --outfile=./dist/app.js --platform=node --target=node22.0 --format=cjs --minify",
+    "build": "bunx wrangler deploy src/app.ts",
     "lint": "bunx biome check .",
     "lint:fix": "bunx biome check --write .",
     "types": "tsc --noEmit",
     "types:db": "bunx supabase gen types typescript --project-id ajvsqwbowwilmcqyynye > ./src/types/database.ts"
   },
   "dependencies": {
+    "@cloudflare/workers-types": "^4.20250906.0",
     "@hono/zod-openapi": "^1.1.0",
     "@scalar/hono-api-reference": "^0.9.13",
     "@supabase/supabase-js": "^2.57.2",
@@ -20,8 +21,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
-    "@types/bun": "^1.2.20",
-    "esbuild": "^0.25.9"
+    "@types/bun": "^1.2.20"
   },
   "peerDependencies": {
     "typescript": "^5.9.2"

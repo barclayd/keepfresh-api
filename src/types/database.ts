@@ -136,8 +136,10 @@ export type Database = {
       user_grocery_item: {
         Row: {
           consumed_at: string | null;
+          consumption_prediction: number | null;
           created_at: string;
           discarded_at: string | null;
+          expiry_date: string | null;
           grocery_item_id: number;
           id: number;
           location_changed_at: string | null;
@@ -154,12 +156,13 @@ export type Database = {
           thaw_count: number;
           updated_at: string | null;
           user_id: string;
-          waste_percentage_prediciton: number;
         };
         Insert: {
           consumed_at?: string | null;
+          consumption_prediction?: number | null;
           created_at?: string;
           discarded_at?: string | null;
+          expiry_date?: string | null;
           grocery_item_id: number;
           id?: number;
           location_changed_at?: string | null;
@@ -176,12 +179,13 @@ export type Database = {
           thaw_count?: number;
           updated_at?: string | null;
           user_id: string;
-          waste_percentage_prediciton?: number;
         };
         Update: {
           consumed_at?: string | null;
+          consumption_prediction?: number | null;
           created_at?: string;
           discarded_at?: string | null;
+          expiry_date?: string | null;
           grocery_item_id?: number;
           id?: number;
           location_changed_at?: string | null;
@@ -198,7 +202,6 @@ export type Database = {
           thaw_count?: number;
           updated_at?: string | null;
           user_id?: string;
-          waste_percentage_prediciton?: number;
         };
         Relationships: [
           {

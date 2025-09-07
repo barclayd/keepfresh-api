@@ -17,6 +17,7 @@
     "@scalar/hono-api-reference": "^0.9.13",
     "@supabase/supabase-js": "^2.57.2",
     "hono": "^4.9.1",
+    "ts-case-convert": "^2.1.0",
     "zod": "4.0.17"
   },
   "devDependencies": {

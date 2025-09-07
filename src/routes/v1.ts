@@ -1,21 +1,82 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
 import { createClient } from '@supabase/supabase-js';
-import { env } from '@/config/env.ts';
-import { addGroceryItemRoute } from '@/routes';
+import { objectToCamel } from 'ts-case-convert';
+import { env } from '@/config/env';
+import {
+  groceryItemsGETRoute,
+  groceryItemsPOSTRoute,
+} from '@/routes/grocery-items';
+import { UserGroceryItems } from '@/schemas/grocery-item';
 import type { Database } from '@/types/database.ts';
 import type { HonoEnvironment } from '@/types/hono';
 
 export const createV1Routes = () => {
   const app = new OpenAPIHono<HonoEnvironment>();
 
-  app.openapi(addGroceryItemRoute, async (c) => {
+  app.openapi(groceryItemsGETRoute, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE,
     );
 
-    const groceryItem = c.req.valid('json');
+    const { data, error } = await supabase
+      .from('user_grocery_item')
+      .select(`
+      id,
+      created_at,
+      consumption_prediction,
+      status,
+      storage_location,
+      grocery_item (
+        id,
+        name,
+        brand,
+        image_url,
+        category,
+        amount,
+        unit
+      )
+      `)
+      .eq('user_id', '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2');
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving food items. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const userGroceryItemsResult = UserGroceryItems.safeParse(
+      objectToCamel(data),
+    );
+
+    if (!userGroceryItemsResult.success) {
+      return c.json(
+        {
+          error: `Error occurred parsing food items. Error=${JSON.stringify(userGroceryItemsResult.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(
+      {
+        groceryItems: userGroceryItemsResult.data,
+      },
+      200,
+    );
+  });
+
+  app.openapi(groceryItemsPOSTRoute, async (c) => {
+    const supabase = createClient<Database>(
+      env.SUPABASE_URL,
+      env.SUPABASE_SERVICE_ROLE,
+    );
+
+    const _groceryItem = c.req.valid('json');
 
     const userGroceryItem = await supabase
       .from('user_grocery_item')

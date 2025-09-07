@@ -1,18 +1,18 @@
 import { createRoute } from '@hono/zod-openapi';
 import {
-  GroceryItem,
-  GroceryItemGETSchemaResponse,
-  GroceryItemPOSTSchemaResponse,
-} from '@/schemas/grocery-item';
+  InventoryGETSchemaResponse,
+  InventoryItemInput,
+  InventoryItemSchemaResponsePOST,
+} from '@/schemas/inventory';
 
-export const groceryItemsPOSTRoute = createRoute({
+export const inventoryItemRoutePOST = createRoute({
   method: 'post',
-  path: '/grocery-items',
+  path: '/inventory/items',
   request: {
     body: {
       content: {
         'application/json': {
-          schema: GroceryItem,
+          schema: InventoryItemInput,
         },
       },
     },
@@ -22,15 +22,15 @@ export const groceryItemsPOSTRoute = createRoute({
     200: {
       content: {
         'application/json': {
-          schema: GroceryItemPOSTSchemaResponse['200'],
+          schema: InventoryItemSchemaResponsePOST['200'],
         },
       },
-      description: 'Success response from GroceryItem Gen API',
+      description: 'Success response from InventoryItemInput Gen API',
     },
     400: {
       content: {
         'application/json': {
-          schema: GroceryItemPOSTSchemaResponse['400'],
+          schema: InventoryItemSchemaResponsePOST['400'],
         },
       },
       description: 'Error occurred when processing payload',
@@ -38,7 +38,7 @@ export const groceryItemsPOSTRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: GroceryItemPOSTSchemaResponse['401'],
+          schema: InventoryItemSchemaResponsePOST['401'],
         },
       },
       description: 'Authorization error response from Grocery Item API',
@@ -51,23 +51,23 @@ export const groceryItemsPOSTRoute = createRoute({
   ],
 });
 
-export const groceryItemsGETRoute = createRoute({
+export const inventoryGETRoute = createRoute({
   method: 'get',
-  path: '/grocery-items',
+  path: '/inventory',
   middleware: [],
   responses: {
     200: {
       content: {
         'application/json': {
-          schema: GroceryItemGETSchemaResponse['200'],
+          schema: InventoryGETSchemaResponse['200'],
         },
       },
-      description: 'Success response from GroceryItem Gen API',
+      description: 'Success response from InventoryItemInput Gen API',
     },
     400: {
       content: {
         'application/json': {
-          schema: GroceryItemGETSchemaResponse['400'],
+          schema: InventoryGETSchemaResponse['400'],
         },
       },
       description: 'Error occurred when processing payload',
@@ -75,7 +75,7 @@ export const groceryItemsGETRoute = createRoute({
     401: {
       content: {
         'application/json': {
-          schema: GroceryItemGETSchemaResponse['401'],
+          schema: InventoryGETSchemaResponse['401'],
         },
       },
       description: 'Authorization error response from Grocery Item API',

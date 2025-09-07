@@ -14,126 +14,7 @@ export type Database = {
   };
   public: {
     Tables: {
-      grocery_item: {
-        Row: {
-          amount: number | null;
-          barcode: string | null;
-          brand: string;
-          category: string | null;
-          created_at: string;
-          expiry_type: Database['public']['Enums']['expiry_type'];
-          id: number;
-          image_url: string | null;
-          lifespan_in_days: number | null;
-          name: string;
-          recommended_storage_location:
-            | Database['public']['Enums']['storage_location']
-            | null;
-          source_id: number | null;
-          source_ref: string | null;
-          unit: Database['public']['Enums']['unit'] | null;
-          updated_at: string;
-        };
-        Insert: {
-          amount?: number | null;
-          barcode?: string | null;
-          brand: string;
-          category?: string | null;
-          created_at?: string;
-          expiry_type: Database['public']['Enums']['expiry_type'];
-          id?: number;
-          image_url?: string | null;
-          lifespan_in_days?: number | null;
-          name: string;
-          recommended_storage_location?:
-            | Database['public']['Enums']['storage_location']
-            | null;
-          source_id?: number | null;
-          source_ref?: string | null;
-          unit?: Database['public']['Enums']['unit'] | null;
-          updated_at?: string;
-        };
-        Update: {
-          amount?: number | null;
-          barcode?: string | null;
-          brand?: string;
-          category?: string | null;
-          created_at?: string;
-          expiry_type?: Database['public']['Enums']['expiry_type'];
-          id?: number;
-          image_url?: string | null;
-          lifespan_in_days?: number | null;
-          name?: string;
-          recommended_storage_location?:
-            | Database['public']['Enums']['storage_location']
-            | null;
-          source_id?: number | null;
-          source_ref?: string | null;
-          unit?: Database['public']['Enums']['unit'] | null;
-          updated_at?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'grocery_item_source_id_fkey';
-            columns: ['source_id'];
-            isOneToOne: false;
-            referencedRelation: 'grocery_item';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
-      grocery_item_source: {
-        Row: {
-          api_base_url: string | null;
-          created_at: string;
-          id: number;
-          name: string;
-          updated_at: string | null;
-        };
-        Insert: {
-          api_base_url?: string | null;
-          created_at?: string;
-          id?: number;
-          name: string;
-          updated_at?: string | null;
-        };
-        Update: {
-          api_base_url?: string | null;
-          created_at?: string;
-          id?: number;
-          name?: string;
-          updated_at?: string | null;
-        };
-        Relationships: [];
-      };
-      user: {
-        Row: {
-          created_at: string;
-          email: string | null;
-          first_name: string | null;
-          id: string;
-          last_name: string | null;
-          updated_at: string | null;
-        };
-        Insert: {
-          created_at?: string;
-          email?: string | null;
-          first_name?: string | null;
-          id?: string;
-          last_name?: string | null;
-          updated_at?: string | null;
-        };
-        Update: {
-          created_at?: string;
-          email?: string | null;
-          first_name?: string | null;
-          id?: string;
-          last_name?: string | null;
-          updated_at?: string | null;
-        };
-        Relationships: [];
-      };
-      user_grocery_item: {
+      inventory_items: {
         Row: {
           consumed_at: string | null;
           consumption_prediction: number | null;
@@ -208,7 +89,7 @@ export type Database = {
             foreignKeyName: 'User Grocery Item_grocery_item_id_fkey';
             columns: ['grocery_item_id'];
             isOneToOne: false;
-            referencedRelation: 'grocery_item';
+            referencedRelation: 'products';
             referencedColumns: ['id'];
           },
           {
@@ -219,6 +100,125 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      product_source: {
+        Row: {
+          api_base_url: string | null;
+          created_at: string;
+          id: number;
+          name: string;
+          updated_at: string | null;
+        };
+        Insert: {
+          api_base_url?: string | null;
+          created_at?: string;
+          id?: number;
+          name: string;
+          updated_at?: string | null;
+        };
+        Update: {
+          api_base_url?: string | null;
+          created_at?: string;
+          id?: number;
+          name?: string;
+          updated_at?: string | null;
+        };
+        Relationships: [];
+      };
+      products: {
+        Row: {
+          amount: number | null;
+          barcode: string | null;
+          brand: string;
+          category: string | null;
+          created_at: string;
+          expiry_type: Database['public']['Enums']['expiry_type'];
+          id: number;
+          image_url: string | null;
+          lifespan_in_days: number | null;
+          name: string;
+          recommended_storage_location:
+            | Database['public']['Enums']['storage_location']
+            | null;
+          source_id: number | null;
+          source_ref: string | null;
+          unit: Database['public']['Enums']['unit'] | null;
+          updated_at: string;
+        };
+        Insert: {
+          amount?: number | null;
+          barcode?: string | null;
+          brand: string;
+          category?: string | null;
+          created_at?: string;
+          expiry_type: Database['public']['Enums']['expiry_type'];
+          id?: number;
+          image_url?: string | null;
+          lifespan_in_days?: number | null;
+          name: string;
+          recommended_storage_location?:
+            | Database['public']['Enums']['storage_location']
+            | null;
+          source_id?: number | null;
+          source_ref?: string | null;
+          unit?: Database['public']['Enums']['unit'] | null;
+          updated_at?: string;
+        };
+        Update: {
+          amount?: number | null;
+          barcode?: string | null;
+          brand?: string;
+          category?: string | null;
+          created_at?: string;
+          expiry_type?: Database['public']['Enums']['expiry_type'];
+          id?: number;
+          image_url?: string | null;
+          lifespan_in_days?: number | null;
+          name?: string;
+          recommended_storage_location?:
+            | Database['public']['Enums']['storage_location']
+            | null;
+          source_id?: number | null;
+          source_ref?: string | null;
+          unit?: Database['public']['Enums']['unit'] | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'grocery_item_source_id_fkey';
+            columns: ['source_id'];
+            isOneToOne: false;
+            referencedRelation: 'products';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      user: {
+        Row: {
+          created_at: string;
+          email: string | null;
+          first_name: string | null;
+          id: string;
+          last_name: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          email?: string | null;
+          first_name?: string | null;
+          id?: string;
+          last_name?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          email?: string | null;
+          first_name?: string | null;
+          id?: string;
+          last_name?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
       };
     };
     Views: {

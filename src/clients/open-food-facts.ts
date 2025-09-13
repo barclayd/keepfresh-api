@@ -60,9 +60,11 @@ export const search = async (
     await Promise.all(
       uniqueProducts.map(async (product) => {
         const quantity = parseQuantity(product.quantity);
+        const productName = toTitleCase(product.productName);
+
         const category = await getCategory(
           product.categoriesTagsEn,
-          product.productName,
+          productName,
           supabase,
         );
 
@@ -76,7 +78,7 @@ export const search = async (
 
         return {
           sourceId: product.code,
-          name: product.productName,
+          name: productName,
           brand: toTitleCase(product.brands),
           category: category.name,
           categoryPath: getCategoryPath(category.path_display),

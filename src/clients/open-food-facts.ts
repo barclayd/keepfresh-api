@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { objectToCamel } from 'ts-case-convert';
-import { getUniqueProductNames } from '@/helpers/product';
+import { getCategoryPath } from '@/helpers/category';
+import { getUniqueProducts } from '@/helpers/product';
 import { parseQuantity } from '@/helpers/quantity';
 import { toTitleCase } from '@/helpers/toTitleCase';
 import { OpenFoodFactsSearchSchema } from '@/schemas/open-food-facts';
@@ -10,6 +11,7 @@ import type { Database } from '@/types/database';
 type Category = {
   id: number;
   path: string;
+  path_display: string;
   name: string;
   icon?: string;
   image_url?: string;
@@ -52,35 +54,42 @@ export const search = async (
     objectToCamel(openFoodFactsData as object),
   );
 
-  const uniqueProducts = getUniqueProductNames(openFoodFactsProducts.products);
+  const uniqueProducts = getUniqueProducts(openFoodFactsProducts.products);
 
-  const searchProducts: Array<ProductSearchItem> = await Promise.all(
-    uniqueProducts.map(async (product) => {
-      const quantity = parseQuantity(product.quantity);
-      const category = await getCategory(
-        product.categoriesTagsEn,
-        product.productName,
-        supabase,
-      );
-      // change fallback image to be brand image
-      const fallbackImageURL =
-        'https://keep-fresh-images.s3.eu-west-2.amazonaws.com/milk.png';
+  const searchProducts: Array<ProductSearchItem | undefined> =
+    await Promise.all(
+      uniqueProducts.map(async (product) => {
+        const quantity = parseQuantity(product.quantity);
+        const category = await getCategory(
+          product.categoriesTagsEn,
+          product.productName,
+          supabase,
+        );
 
-      return {
-        sourceId: product.code,
-        name: product.productName,
-        brand: toTitleCase(product.brands),
-        category: category?.name,
-        imageURL: category?.image_url ?? fallbackImageURL,
-        icon: category?.icon ?? '🥛',
-        ...(quantity && {
-          amount: quantity.amount,
-          unit: quantity.unit,
-        }),
-      };
-    }),
-  );
+        // change fallback image to be brand image
+        const fallbackImageURL =
+          'https://keep-fresh-images.s3.eu-west-2.amazonaws.com/milk.png';
+
+        if (!category) {
+          return;
+        }
+
+        return {
+          sourceId: product.code,
+          name: product.productName,
+          brand: toTitleCase(product.brands),
+          category: category.name,
+          categoryPath: getCategoryPath(category.path_display),
+          imageURL: category?.image_url ?? fallbackImageURL,
+          icon: category?.icon ?? '??',
+          ...(quantity && {
+            amount: quantity.amount,
+            unit: quantity.unit,
+          }),
+        };
+      }),
+    );
 
   // send event to save product in database
-  return searchProducts;
+  return searchProducts.filter(Boolean);
 };

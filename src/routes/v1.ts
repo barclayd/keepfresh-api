@@ -2,10 +2,15 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
 import { createClient } from '@supabase/supabase-js';
 import { objectToCamel } from 'ts-case-convert';
+import { search } from '@/clients/open-food-facts';
 import { env } from '@/config/env';
-import { inventoryGETRoute, inventoryItemRoutePOST } from '@/routes/inventory';
+import {
+  inventoryGETRoute,
+  inventoryItemRoutePOST,
+  productSearchGETRoute,
+} from '@/routes/inventory';
 import { InventoryItemsSchema } from '@/schemas/inventory';
-import type { Database } from '@/types/database.ts';
+import type { Database } from '@/types/database';
 import type { HonoEnvironment } from '@/types/hono';
 
 export const createV1Routes = () => {
@@ -94,6 +99,24 @@ export const createV1Routes = () => {
     return c.json(
       {
         inventoryItemId: String(inventoryItem.data[0]?.id),
+      },
+      200,
+    );
+  });
+
+  app.openapi(productSearchGETRoute, async (c) => {
+    const supabase = createClient<Database>(
+      env.SUPABASE_URL,
+      env.SUPABASE_SERVICE_ROLE,
+    );
+
+    const { search: searchTerm } = c.req.valid('query');
+
+    const products = await search(searchTerm, supabase);
+
+    return c.json(
+      {
+        products,
       },
       200,
     );

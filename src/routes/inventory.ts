@@ -1,9 +1,11 @@
 import { createRoute } from '@hono/zod-openapi';
+import { z } from 'zod';
 import {
   InventoryGETSchemaResponse,
   InventoryItemInput,
   InventoryItemSchemaResponsePOST,
 } from '@/schemas/inventory';
+import { ProductSearchItemsSchema } from '@/schemas/product';
 
 export const inventoryItemRoutePOST = createRoute({
   method: 'post',
@@ -79,6 +81,34 @@ export const inventoryGETRoute = createRoute({
         },
       },
       description: 'Authorization error response from Grocery Item API',
+    },
+  },
+  security: [
+    {
+      Bearer: [],
+    },
+  ],
+});
+
+export const productSearchGETRoute = createRoute({
+  method: 'get',
+  path: '/products',
+  middleware: [],
+  request: {
+    query: z.object({
+      search: z.string(),
+    }),
+  },
+  responses: {
+    200: {
+      content: {
+        'application/json': {
+          schema: z.object({
+            products: ProductSearchItemsSchema,
+          }),
+        },
+      },
+      description: 'Success response from InventoryItemInput Gen API',
     },
   },
   security: [

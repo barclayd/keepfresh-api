@@ -14,6 +14,84 @@ export type Database = {
   };
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string;
+          expiry_type: Database['public']['Enums']['expiry_type'];
+          icon: string | null;
+          id: number;
+          image_url: string | null;
+          name: string;
+          path: unknown;
+          path_display: string;
+          recommended_storage_location: Database['public']['Enums']['storage_location'];
+          shelf_life_in_freezer_in_days_opened: number | null;
+          shelf_life_in_freezer_in_days_unopened: number | null;
+          shelf_life_in_fridge_in_days_opened: number | null;
+          shelf_life_in_fridge_in_days_unopened: number | null;
+          shelf_life_in_pantry_in_days_opened: number | null;
+          shelf_life_in_pantry_in_days_unopened: number | null;
+        };
+        Insert: {
+          created_at?: string;
+          expiry_type?: Database['public']['Enums']['expiry_type'];
+          icon?: string | null;
+          id?: number;
+          image_url?: string | null;
+          name: string;
+          path: unknown;
+          path_display: string;
+          recommended_storage_location: Database['public']['Enums']['storage_location'];
+          shelf_life_in_freezer_in_days_opened?: number | null;
+          shelf_life_in_freezer_in_days_unopened?: number | null;
+          shelf_life_in_fridge_in_days_opened?: number | null;
+          shelf_life_in_fridge_in_days_unopened?: number | null;
+          shelf_life_in_pantry_in_days_opened?: number | null;
+          shelf_life_in_pantry_in_days_unopened?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          expiry_type?: Database['public']['Enums']['expiry_type'];
+          icon?: string | null;
+          id?: number;
+          image_url?: string | null;
+          name?: string;
+          path?: unknown;
+          path_display?: string;
+          recommended_storage_location?: Database['public']['Enums']['storage_location'];
+          shelf_life_in_freezer_in_days_opened?: number | null;
+          shelf_life_in_freezer_in_days_unopened?: number | null;
+          shelf_life_in_fridge_in_days_opened?: number | null;
+          shelf_life_in_fridge_in_days_unopened?: number | null;
+          shelf_life_in_pantry_in_days_opened?: number | null;
+          shelf_life_in_pantry_in_days_unopened?: number | null;
+        };
+        Relationships: [];
+      };
+      category_preferences: {
+        Row: {
+          context_pattern: string | null;
+          description: string | null;
+          id: number;
+          path_pattern: string | null;
+          preference_score: number | null;
+        };
+        Insert: {
+          context_pattern?: string | null;
+          description?: string | null;
+          id?: number;
+          path_pattern?: string | null;
+          preference_score?: number | null;
+        };
+        Update: {
+          context_pattern?: string | null;
+          description?: string | null;
+          id?: number;
+          path_pattern?: string | null;
+          preference_score?: number | null;
+        };
+        Relationships: [];
+      };
       inventory_items: {
         Row: {
           consumed_at: string | null;
@@ -21,13 +99,13 @@ export type Database = {
           created_at: string;
           discarded_at: string | null;
           expiry_date: string | null;
-          grocery_item_id: number;
           id: number;
           location_changed_at: string | null;
           move_count: number;
           opened_at: string | null;
           percentage_remaining: number;
           percentage_remaining_when_discarded: number | null;
+          product_id: number;
           purchased_at: string | null;
           sec_in_freezer: number;
           sec_in_fridge: number;
@@ -44,13 +122,13 @@ export type Database = {
           created_at?: string;
           discarded_at?: string | null;
           expiry_date?: string | null;
-          grocery_item_id: number;
           id?: number;
           location_changed_at?: string | null;
           move_count?: number;
           opened_at?: string | null;
           percentage_remaining?: number;
           percentage_remaining_when_discarded?: number | null;
+          product_id: number;
           purchased_at?: string | null;
           sec_in_freezer?: number;
           sec_in_fridge?: number;
@@ -67,13 +145,13 @@ export type Database = {
           created_at?: string;
           discarded_at?: string | null;
           expiry_date?: string | null;
-          grocery_item_id?: number;
           id?: number;
           location_changed_at?: string | null;
           move_count?: number;
           opened_at?: string | null;
           percentage_remaining?: number;
           percentage_remaining_when_discarded?: number | null;
+          product_id?: number;
           purchased_at?: string | null;
           sec_in_freezer?: number;
           sec_in_fridge?: number;
@@ -86,8 +164,8 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'User Grocery Item_grocery_item_id_fkey';
-            columns: ['grocery_item_id'];
+            foreignKeyName: 'inventory_items_product_id_fkey';
+            columns: ['product_id'];
             isOneToOne: false;
             referencedRelation: 'products';
             referencedColumns: ['id'];
@@ -96,7 +174,7 @@ export type Database = {
             foreignKeyName: 'User Grocery Item_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
-            referencedRelation: 'user';
+            referencedRelation: 'users';
             referencedColumns: ['id'];
           },
         ];
@@ -130,7 +208,7 @@ export type Database = {
           amount: number | null;
           barcode: string | null;
           brand: string;
-          category: string | null;
+          category_id: number | null;
           created_at: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id: number;
@@ -149,7 +227,7 @@ export type Database = {
           amount?: number | null;
           barcode?: string | null;
           brand: string;
-          category?: string | null;
+          category_id?: number | null;
           created_at?: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id?: number;
@@ -168,7 +246,7 @@ export type Database = {
           amount?: number | null;
           barcode?: string | null;
           brand?: string;
-          category?: string | null;
+          category_id?: number | null;
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
           id?: number;
@@ -185,15 +263,22 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: 'grocery_item_source_id_fkey';
+            foreignKeyName: 'products_category_id_fkey';
+            columns: ['category_id'];
+            isOneToOne: false;
+            referencedRelation: 'categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'products_source_id_fkey';
             columns: ['source_id'];
             isOneToOne: false;
-            referencedRelation: 'products';
+            referencedRelation: 'product_source';
             referencedColumns: ['id'];
           },
         ];
       };
-      user: {
+      users: {
         Row: {
           created_at: string;
           email: string | null;
@@ -225,7 +310,35 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      debug_category_match: {
+        Args: { api_categories: string[] };
+        Returns: {
+          category_path: string;
+          match_type: string;
+          preference_score: number;
+          similarity_score: number;
+        }[];
+      };
+      match_food_category: {
+        Args: { api_categories: string[] };
+        Returns: {
+          created_at: string;
+          expiry_type: Database['public']['Enums']['expiry_type'];
+          icon: string | null;
+          id: number;
+          image_url: string | null;
+          name: string;
+          path: unknown;
+          path_display: string;
+          recommended_storage_location: Database['public']['Enums']['storage_location'];
+          shelf_life_in_freezer_in_days_opened: number | null;
+          shelf_life_in_freezer_in_days_unopened: number | null;
+          shelf_life_in_fridge_in_days_opened: number | null;
+          shelf_life_in_fridge_in_days_unopened: number | null;
+          shelf_life_in_pantry_in_days_opened: number | null;
+          shelf_life_in_pantry_in_days_unopened: number | null;
+        }[];
+      };
     };
     Enums: {
       expiry_type: 'best_before' | 'use_by' | 'long_life';

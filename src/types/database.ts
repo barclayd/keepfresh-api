@@ -14,75 +14,172 @@ export type Database = {
   };
   public: {
     Tables: {
-      grocery_item: {
+      categories: {
         Row: {
-          amount: number | null;
-          barcode: string | null;
-          brand: string;
-          category: string | null;
           created_at: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
+          icon: string | null;
           id: number;
           image_url: string | null;
-          lifespan_in_days: number | null;
           name: string;
-          recommended_storage_location:
-            | Database['public']['Enums']['storage_location']
-            | null;
-          source_id: number | null;
-          source_ref: string | null;
-          unit: Database['public']['Enums']['unit'] | null;
-          updated_at: string;
+          path: unknown;
+          path_display: string;
+          recommended_storage_location: Database['public']['Enums']['storage_location'];
+          shelf_life_in_freezer_in_days_opened: number | null;
+          shelf_life_in_freezer_in_days_unopened: number | null;
+          shelf_life_in_fridge_in_days_opened: number | null;
+          shelf_life_in_fridge_in_days_unopened: number | null;
+          shelf_life_in_pantry_in_days_opened: number | null;
+          shelf_life_in_pantry_in_days_unopened: number | null;
         };
         Insert: {
-          amount?: number | null;
-          barcode?: string | null;
-          brand: string;
-          category?: string | null;
-          created_at?: string;
-          expiry_type: Database['public']['Enums']['expiry_type'];
-          id?: number;
-          image_url?: string | null;
-          lifespan_in_days?: number | null;
-          name: string;
-          recommended_storage_location?:
-            | Database['public']['Enums']['storage_location']
-            | null;
-          source_id?: number | null;
-          source_ref?: string | null;
-          unit?: Database['public']['Enums']['unit'] | null;
-          updated_at?: string;
-        };
-        Update: {
-          amount?: number | null;
-          barcode?: string | null;
-          brand?: string;
-          category?: string | null;
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
+          icon?: string | null;
           id?: number;
           image_url?: string | null;
-          lifespan_in_days?: number | null;
+          name: string;
+          path: unknown;
+          path_display: string;
+          recommended_storage_location: Database['public']['Enums']['storage_location'];
+          shelf_life_in_freezer_in_days_opened?: number | null;
+          shelf_life_in_freezer_in_days_unopened?: number | null;
+          shelf_life_in_fridge_in_days_opened?: number | null;
+          shelf_life_in_fridge_in_days_unopened?: number | null;
+          shelf_life_in_pantry_in_days_opened?: number | null;
+          shelf_life_in_pantry_in_days_unopened?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          expiry_type?: Database['public']['Enums']['expiry_type'];
+          icon?: string | null;
+          id?: number;
+          image_url?: string | null;
           name?: string;
-          recommended_storage_location?:
-            | Database['public']['Enums']['storage_location']
-            | null;
-          source_id?: number | null;
-          source_ref?: string | null;
-          unit?: Database['public']['Enums']['unit'] | null;
-          updated_at?: string;
+          path?: unknown;
+          path_display?: string;
+          recommended_storage_location?: Database['public']['Enums']['storage_location'];
+          shelf_life_in_freezer_in_days_opened?: number | null;
+          shelf_life_in_freezer_in_days_unopened?: number | null;
+          shelf_life_in_fridge_in_days_opened?: number | null;
+          shelf_life_in_fridge_in_days_unopened?: number | null;
+          shelf_life_in_pantry_in_days_opened?: number | null;
+          shelf_life_in_pantry_in_days_unopened?: number | null;
+        };
+        Relationships: [];
+      };
+      category_preferences: {
+        Row: {
+          context_pattern: string | null;
+          description: string | null;
+          id: number;
+          path_pattern: string | null;
+          preference_score: number | null;
+        };
+        Insert: {
+          context_pattern?: string | null;
+          description?: string | null;
+          id?: number;
+          path_pattern?: string | null;
+          preference_score?: number | null;
+        };
+        Update: {
+          context_pattern?: string | null;
+          description?: string | null;
+          id?: number;
+          path_pattern?: string | null;
+          preference_score?: number | null;
+        };
+        Relationships: [];
+      };
+      inventory_items: {
+        Row: {
+          consumed_at: string | null;
+          consumption_prediction: number | null;
+          created_at: string;
+          discarded_at: string | null;
+          expiry_date: string | null;
+          id: number;
+          location_changed_at: string | null;
+          move_count: number;
+          opened_at: string | null;
+          percentage_remaining: number;
+          percentage_remaining_when_discarded: number | null;
+          product_id: number;
+          purchased_at: string | null;
+          sec_in_freezer: number;
+          sec_in_fridge: number;
+          sec_in_pantry: number;
+          status: Database['public']['Enums']['grocery_item_status'];
+          storage_location: Database['public']['Enums']['storage_location'];
+          thaw_count: number;
+          updated_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          consumed_at?: string | null;
+          consumption_prediction?: number | null;
+          created_at?: string;
+          discarded_at?: string | null;
+          expiry_date?: string | null;
+          id?: number;
+          location_changed_at?: string | null;
+          move_count?: number;
+          opened_at?: string | null;
+          percentage_remaining?: number;
+          percentage_remaining_when_discarded?: number | null;
+          product_id: number;
+          purchased_at?: string | null;
+          sec_in_freezer?: number;
+          sec_in_fridge?: number;
+          sec_in_pantry?: number;
+          status?: Database['public']['Enums']['grocery_item_status'];
+          storage_location: Database['public']['Enums']['storage_location'];
+          thaw_count?: number;
+          updated_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          consumed_at?: string | null;
+          consumption_prediction?: number | null;
+          created_at?: string;
+          discarded_at?: string | null;
+          expiry_date?: string | null;
+          id?: number;
+          location_changed_at?: string | null;
+          move_count?: number;
+          opened_at?: string | null;
+          percentage_remaining?: number;
+          percentage_remaining_when_discarded?: number | null;
+          product_id?: number;
+          purchased_at?: string | null;
+          sec_in_freezer?: number;
+          sec_in_fridge?: number;
+          sec_in_pantry?: number;
+          status?: Database['public']['Enums']['grocery_item_status'];
+          storage_location?: Database['public']['Enums']['storage_location'];
+          thaw_count?: number;
+          updated_at?: string | null;
+          user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: 'grocery_item_source_id_fkey';
-            columns: ['source_id'];
+            foreignKeyName: 'inventory_items_product_id_fkey';
+            columns: ['product_id'];
             isOneToOne: false;
-            referencedRelation: 'grocery_item';
+            referencedRelation: 'products';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'User Grocery Item_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
             referencedColumns: ['id'];
           },
         ];
       };
-      grocery_item_source: {
+      product_source: {
         Row: {
           api_base_url: string | null;
           created_at: string;
@@ -106,7 +203,82 @@ export type Database = {
         };
         Relationships: [];
       };
-      user: {
+      products: {
+        Row: {
+          amount: number | null;
+          barcode: string | null;
+          brand: string;
+          category_id: number | null;
+          created_at: string;
+          expiry_type: Database['public']['Enums']['expiry_type'];
+          id: number;
+          image_url: string | null;
+          lifespan_in_days: number | null;
+          name: string;
+          recommended_storage_location:
+            | Database['public']['Enums']['storage_location']
+            | null;
+          source_id: number | null;
+          source_ref: string | null;
+          unit: Database['public']['Enums']['unit'] | null;
+          updated_at: string;
+        };
+        Insert: {
+          amount?: number | null;
+          barcode?: string | null;
+          brand: string;
+          category_id?: number | null;
+          created_at?: string;
+          expiry_type: Database['public']['Enums']['expiry_type'];
+          id?: number;
+          image_url?: string | null;
+          lifespan_in_days?: number | null;
+          name: string;
+          recommended_storage_location?:
+            | Database['public']['Enums']['storage_location']
+            | null;
+          source_id?: number | null;
+          source_ref?: string | null;
+          unit?: Database['public']['Enums']['unit'] | null;
+          updated_at?: string;
+        };
+        Update: {
+          amount?: number | null;
+          barcode?: string | null;
+          brand?: string;
+          category_id?: number | null;
+          created_at?: string;
+          expiry_type?: Database['public']['Enums']['expiry_type'];
+          id?: number;
+          image_url?: string | null;
+          lifespan_in_days?: number | null;
+          name?: string;
+          recommended_storage_location?:
+            | Database['public']['Enums']['storage_location']
+            | null;
+          source_id?: number | null;
+          source_ref?: string | null;
+          unit?: Database['public']['Enums']['unit'] | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'products_category_id_fkey';
+            columns: ['category_id'];
+            isOneToOne: false;
+            referencedRelation: 'categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'products_source_id_fkey';
+            columns: ['source_id'];
+            isOneToOne: false;
+            referencedRelation: 'product_source';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      users: {
         Row: {
           created_at: string;
           email: string | null;
@@ -133,99 +305,40 @@ export type Database = {
         };
         Relationships: [];
       };
-      user_grocery_item: {
-        Row: {
-          consumed_at: string | null;
-          consumption_prediction: number | null;
-          created_at: string;
-          discarded_at: string | null;
-          expiry_date: string | null;
-          grocery_item_id: number;
-          id: number;
-          location_changed_at: string | null;
-          move_count: number;
-          opened_at: string | null;
-          percentage_remaining: number;
-          percentage_remaining_when_discarded: number | null;
-          purchased_at: string | null;
-          sec_in_freezer: number;
-          sec_in_fridge: number;
-          sec_in_pantry: number;
-          status: Database['public']['Enums']['grocery_item_status'];
-          storage_location: Database['public']['Enums']['storage_location'];
-          thaw_count: number;
-          updated_at: string | null;
-          user_id: string;
-        };
-        Insert: {
-          consumed_at?: string | null;
-          consumption_prediction?: number | null;
-          created_at?: string;
-          discarded_at?: string | null;
-          expiry_date?: string | null;
-          grocery_item_id: number;
-          id?: number;
-          location_changed_at?: string | null;
-          move_count?: number;
-          opened_at?: string | null;
-          percentage_remaining?: number;
-          percentage_remaining_when_discarded?: number | null;
-          purchased_at?: string | null;
-          sec_in_freezer?: number;
-          sec_in_fridge?: number;
-          sec_in_pantry?: number;
-          status?: Database['public']['Enums']['grocery_item_status'];
-          storage_location: Database['public']['Enums']['storage_location'];
-          thaw_count?: number;
-          updated_at?: string | null;
-          user_id: string;
-        };
-        Update: {
-          consumed_at?: string | null;
-          consumption_prediction?: number | null;
-          created_at?: string;
-          discarded_at?: string | null;
-          expiry_date?: string | null;
-          grocery_item_id?: number;
-          id?: number;
-          location_changed_at?: string | null;
-          move_count?: number;
-          opened_at?: string | null;
-          percentage_remaining?: number;
-          percentage_remaining_when_discarded?: number | null;
-          purchased_at?: string | null;
-          sec_in_freezer?: number;
-          sec_in_fridge?: number;
-          sec_in_pantry?: number;
-          status?: Database['public']['Enums']['grocery_item_status'];
-          storage_location?: Database['public']['Enums']['storage_location'];
-          thaw_count?: number;
-          updated_at?: string | null;
-          user_id?: string;
-        };
-        Relationships: [
-          {
-            foreignKeyName: 'User Grocery Item_grocery_item_id_fkey';
-            columns: ['grocery_item_id'];
-            isOneToOne: false;
-            referencedRelation: 'grocery_item';
-            referencedColumns: ['id'];
-          },
-          {
-            foreignKeyName: 'User Grocery Item_user_id_fkey';
-            columns: ['user_id'];
-            isOneToOne: false;
-            referencedRelation: 'user';
-            referencedColumns: ['id'];
-          },
-        ];
-      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      debug_category_match: {
+        Args: { api_categories: string[] };
+        Returns: {
+          category_path: string;
+          match_type: string;
+          preference_score: number;
+          similarity_score: number;
+        }[];
+      };
+      match_food_category: {
+        Args: { api_categories: string[] };
+        Returns: {
+          created_at: string;
+          expiry_type: Database['public']['Enums']['expiry_type'];
+          icon: string | null;
+          id: number;
+          image_url: string | null;
+          name: string;
+          path: unknown;
+          path_display: string;
+          recommended_storage_location: Database['public']['Enums']['storage_location'];
+          shelf_life_in_freezer_in_days_opened: number | null;
+          shelf_life_in_freezer_in_days_unopened: number | null;
+          shelf_life_in_fridge_in_days_opened: number | null;
+          shelf_life_in_fridge_in_days_unopened: number | null;
+          shelf_life_in_pantry_in_days_opened: number | null;
+          shelf_life_in_pantry_in_days_unopened: number | null;
+        }[];
+      };
     };
     Enums: {
       expiry_type: 'best_before' | 'use_by' | 'long_life';

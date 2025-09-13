@@ -1,7 +1,7 @@
 import { z } from '@hono/zod-openapi';
 import type { Database } from '@/types/database';
 
-export const GroceryItem = z.object({
+export const InventoryItemInput = z.object({
   name: z.string(),
   brand: z.string(),
   category: z.string(),
@@ -10,11 +10,11 @@ export const GroceryItem = z.object({
 });
 
 const storageLocation: Array<
-  Database['public']['Tables']['user_grocery_item']['Row']['storage_location']
+  Database['public']['Tables']['inventory_items']['Row']['storage_location']
 > = ['fridge', 'freezer', 'pantry'] as const;
 
 const status: Array<
-  Database['public']['Tables']['user_grocery_item']['Row']['status']
+  Database['public']['Tables']['inventory_items']['Row']['status']
 > = ['opened', 'unopened', 'consumed', 'discarded'] as const;
 
 export const timestampzTransformer = z
@@ -35,12 +35,12 @@ export const timestampzTransformer = z
   })
   .pipe(z.iso.datetime());
 
-export const UserGroceryItem = z.object({
+export const InventoryItem = z.object({
   id: z.number(),
   createdAt: timestampzTransformer,
   consumptionPrediction: z.int(),
   storageLocation: z.enum(storageLocation),
-  groceryItem: z.object({
+  products: z.object({
     id: z.int(),
     name: z.string(),
     brand: z.string(),
@@ -52,13 +52,13 @@ export const UserGroceryItem = z.object({
   status: z.enum(status),
 });
 
-export const UserGroceryItems = z.array(UserGroceryItem);
+export const InventoryItemsSchema = z.array(InventoryItem);
 
-export type GroceryItem = z.infer<typeof GroceryItem>;
+export type InventoryItemInput = z.infer<typeof InventoryItemInput>;
 
-export const GroceryItemPOSTSchemaResponse = {
+export const InventoryItemSchemaResponsePOST = {
   200: z.object({
-    groceryItemId: z.string(),
+    inventoryItemId: z.string(),
   }),
   400: z.object({
     error: z.string().openapi({
@@ -107,9 +107,9 @@ export const GroceryItemPOSTSchemaResponse = {
   }),
 };
 
-export const GroceryItemGETSchemaResponse = {
+export const InventoryGETSchemaResponse = {
   200: z.object({
-    groceryItems: UserGroceryItems,
+    inventoryItems: InventoryItemsSchema,
   }),
   400: z.object({
     error: z.string().openapi({

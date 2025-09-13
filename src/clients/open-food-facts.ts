@@ -1,0 +1,86 @@
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { objectToCamel } from 'ts-case-convert';
+import { getUniqueProductNames } from '@/helpers/product';
+import { parseQuantity } from '@/helpers/quantity';
+import { toTitleCase } from '@/helpers/toTitleCase';
+import { OpenFoodFactsSearchSchema } from '@/schemas/open-food-facts';
+import type { ProductSearchItem } from '@/schemas/product';
+import type { Database } from '@/types/database';
+
+type Category = {
+  id: number;
+  path: string;
+  name: string;
+  icon?: string;
+  image_url?: string;
+};
+
+const getCategory = async (
+  categoryTags: Array<string> | undefined,
+  productName: string,
+  supabase: SupabaseClient<Database>,
+) => {
+  const { data, error } = await supabase
+    .rpc('match_food_category', {
+      api_categories: !categoryTags ? [productName] : categoryTags,
+    })
+    .single();
+
+  if (error) {
+    console.error('Category matching error:', error);
+    return;
+  }
+
+  return (data as Category) ?? undefined;
+};
+
+export const search = async (
+  query: string,
+  supabase: SupabaseClient<Database>,
+) => {
+  const searchTerms = encodeURI(query);
+  const pageSize = 25;
+
+  // query internal database at the same time
+  const openFoodFactsResponse = await fetch(
+    `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${searchTerms}&search_simple=1&action=process&json=1&page_size=${pageSize}&sort_by=unique_scans_n&fields=code,product_name,brands,categories_tags_en,quantity&lc=en`,
+  );
+
+  const openFoodFactsData = await openFoodFactsResponse.json();
+
+  const openFoodFactsProducts = OpenFoodFactsSearchSchema.parse(
+    objectToCamel(openFoodFactsData as object),
+  );
+
+  const uniqueProducts = getUniqueProductNames(openFoodFactsProducts.products);
+
+  const searchProducts: Array<ProductSearchItem> = await Promise.all(
+    uniqueProducts.map(async (product) => {
+      const quantity = parseQuantity(product.quantity);
+      const category = await getCategory(
+        product.categoriesTagsEn,
+        product.productName,
+        supabase,
+      );
+      // change fallback image to be brand image
+      const fallbackImageURL =
+        'https://keep-fresh-images.s3.eu-west-2.amazonaws.com/milk.png';
+
+      return {
+        sourceId: product.code,
+        name: product.productName,
+        brand: toTitleCase(product.brands),
+        category: category?.name,
+        imageURL: category?.image_url ?? fallbackImageURL,
+        icon: category?.icon ?? '🥛',
+        ...(quantity && {
+          amount: quantity.amount,
+          unit: quantity.unit,
+        }),
+      };
+    }),
+  );
+
+  // send event to save product in database
+  return searchProducts;
+};

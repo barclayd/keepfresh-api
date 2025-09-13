@@ -7,7 +7,7 @@ type ValidatedOpenFoodFactProduct = WithRequired<
   'productName'
 >;
 
-export const getUniqueProductNames = (products: OpenFoodFactsProduct[]) => {
+export const getUniqueProducts = (products: OpenFoodFactsProduct[]) => {
   const seen = new Set<string>();
 
   return products.filter((product) => {

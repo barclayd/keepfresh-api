@@ -81,7 +81,7 @@ export const search = async (
           category: category.name,
           categoryPath: getCategoryPath(category.path_display),
           imageURL: category?.image_url ?? fallbackImageURL,
-          icon: category?.icon ?? '??',
+          icon: category?.icon ?? '🍗',
           ...(quantity && {
             amount: quantity.amount,
             unit: quantity.unit,

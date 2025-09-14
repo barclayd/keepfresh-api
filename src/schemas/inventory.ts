@@ -1,5 +1,6 @@
 import { z } from '@hono/zod-openapi';
 import { ExpiryTypeSchema } from '@/schemas/product';
+import { StorageLocation } from '@/types/category';
 import type { Database } from '@/types/database';
 
 export const InventoryItemInput = z.object({
@@ -10,11 +11,7 @@ export const InventoryItemInput = z.object({
   expiryDate: z.iso.date(),
 });
 
-export const storageLocation: Array<
-  Database['public']['Tables']['inventory_items']['Row']['storage_location']
-> = ['fridge', 'freezer', 'pantry'] as const;
-
-export const StorageLocationSchema = z.enum(storageLocation);
+export const StorageLocationSchema = z.enum(StorageLocation);
 
 const status: Array<
   Database['public']['Tables']['inventory_items']['Row']['status']

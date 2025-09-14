@@ -1,4 +1,5 @@
 import { z } from '@hono/zod-openapi';
+import { ExpiryType } from '@/types/category';
 
 export const ProductSearchItemSchema = z.object({
   sourceId: z.string(),
@@ -18,9 +19,5 @@ export const ProductSearchItemSchema = z.object({
 export type ProductSearchItem = z.infer<typeof ProductSearchItemSchema>;
 
 export const ProductSearchItemsSchema = z.array(ProductSearchItemSchema);
-
-const ExpiryType: Array<ExpiryType> = ['use_by', 'long_life', 'best_before'];
-
-type ExpiryType = 'best_before' | 'use_by' | 'long_life';
 
 export const ExpiryTypeSchema = z.enum(ExpiryType);

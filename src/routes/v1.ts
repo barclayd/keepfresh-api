@@ -4,6 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 import { objectToCamel } from 'ts-case-convert';
 import { search } from '@/clients/open-food-facts';
 import { env } from '@/config/env';
+import { expiryTypeMap } from '@/helpers/expiry';
+import { storageLocationMap } from '@/helpers/storage-location';
 import { categoryInventorySuggestionsRoute } from '@/routes/category';
 import {
   inventoryGETRoute,
@@ -172,8 +174,9 @@ export const createV1Routes = () => {
           freezer: data.shelf_life_in_freezer_in_days_unopened,
         },
       },
-      expiryType: data.expiry_type,
-      recommendedStorageLocation: data.recommended_storage_location,
+      expiryType: expiryTypeMap[data.expiry_type],
+      recommendedStorageLocation:
+        storageLocationMap[data.recommended_storage_location],
     };
 
     const inventoryItemSuggestions = InventoryItemSuggestions.parse(

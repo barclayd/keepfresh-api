@@ -322,21 +322,12 @@ export type Database = {
       match_food_category: {
         Args: { api_categories: string[] };
         Returns: {
-          created_at: string;
-          expiry_type: Database['public']['Enums']['expiry_type'];
-          icon: string | null;
+          icon: string;
           id: number;
-          image_url: string | null;
+          image_url: string;
           name: string;
           path: unknown;
           path_display: string;
-          recommended_storage_location: Database['public']['Enums']['storage_location'];
-          shelf_life_in_freezer_in_days_opened: number | null;
-          shelf_life_in_freezer_in_days_unopened: number | null;
-          shelf_life_in_fridge_in_days_opened: number | null;
-          shelf_life_in_fridge_in_days_unopened: number | null;
-          shelf_life_in_pantry_in_days_opened: number | null;
-          shelf_life_in_pantry_in_days_unopened: number | null;
         }[];
       };
     };

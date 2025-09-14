@@ -4,12 +4,16 @@ import { createClient } from '@supabase/supabase-js';
 import { objectToCamel } from 'ts-case-convert';
 import { search } from '@/clients/open-food-facts';
 import { env } from '@/config/env';
+import { categoryInventorySuggestionsRoute } from '@/routes/category';
 import {
   inventoryGETRoute,
   inventoryItemRoutePOST,
   productSearchGETRoute,
 } from '@/routes/inventory';
-import { InventoryItemsSchema } from '@/schemas/inventory';
+import {
+  InventoryItemSuggestions,
+  InventoryItemsSchema,
+} from '@/schemas/inventory';
 import type { Database } from '@/types/database';
 import type { HonoEnvironment } from '@/types/hono';
 
@@ -120,6 +124,63 @@ export const createV1Routes = () => {
       },
       200,
     );
+  });
+
+  app.openapi(categoryInventorySuggestionsRoute, async (c) => {
+    const supabase = createClient<Database>(
+      env.SUPABASE_URL,
+      env.SUPABASE_SERVICE_ROLE,
+    );
+
+    const { categoryId } = c.req.valid('param');
+
+    const { data, error } = await supabase
+      .from('categories')
+      .select(`
+      id,
+      expiry_type,
+      recommended_storage_location,
+      shelf_life_in_pantry_in_days_unopened,
+      shelf_life_in_pantry_in_days_opened,
+      shelf_life_in_fridge_in_days_unopened,
+      shelf_life_in_fridge_in_days_opened,
+      shelf_life_in_freezer_in_days_unopened,
+      shelf_life_in_freezer_in_days_opened
+    `)
+      .eq('id', parseInt(categoryId, 10))
+      .single();
+
+    if (error || !data) {
+      return c.json(
+        {
+          error: `Error occurred retrieving food items. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const inventoryItemSuggestion = {
+      shelfLifeInDays: {
+        opened: {
+          pantry: data.shelf_life_in_pantry_in_days_opened,
+          fridge: data.shelf_life_in_fridge_in_days_opened,
+          freezer: data.shelf_life_in_freezer_in_days_opened,
+        },
+        unopened: {
+          pantry: data.shelf_life_in_pantry_in_days_unopened,
+          fridge: data.shelf_life_in_fridge_in_days_unopened,
+          freezer: data.shelf_life_in_freezer_in_days_unopened,
+        },
+      },
+      expiryType: data.expiry_type,
+      recommendedStorageLocation: data.recommended_storage_location,
+    };
+
+    const inventoryItemSuggestions = InventoryItemSuggestions.parse(
+      inventoryItemSuggestion,
+    );
+
+    return c.json(inventoryItemSuggestions, 200);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

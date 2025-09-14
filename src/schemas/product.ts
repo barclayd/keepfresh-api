@@ -17,3 +17,9 @@ export type ProductSearchItem = z.infer<typeof ProductSearchItemSchema>;
 export const ProductSearchItemsSchema = z.array(ProductSearchItemSchema);
 
 export type ProductSearchItems = z.infer<typeof ProductSearchItemsSchema>;
+
+const ExpiryType: Array<ExpiryType> = ['use_by', 'long_life', 'best_before'];
+
+type ExpiryType = 'best_before' | 'use_by' | 'long_life';
+
+export const ExpiryTypeSchema = z.enum(ExpiryType);

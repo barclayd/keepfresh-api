@@ -4,8 +4,11 @@ export const ProductSearchItemSchema = z.object({
   sourceId: z.string(),
   name: z.string(),
   brand: z.string(),
-  category: z.string(),
-  categoryPath: z.string(),
+  category: z.object({
+    id: z.int(),
+    name: z.string(),
+    path: z.string(),
+  }),
   amount: z.number().optional(),
   unit: z.string().optional(),
   icon: z.string().optional(),
@@ -15,8 +18,6 @@ export const ProductSearchItemSchema = z.object({
 export type ProductSearchItem = z.infer<typeof ProductSearchItemSchema>;
 
 export const ProductSearchItemsSchema = z.array(ProductSearchItemSchema);
-
-export type ProductSearchItems = z.infer<typeof ProductSearchItemsSchema>;
 
 const ExpiryType: Array<ExpiryType> = ['use_by', 'long_life', 'best_before'];
 

@@ -79,8 +79,11 @@ export const search = async (
         sourceId: product.code,
         name: productName,
         brand: toTitleCase(product.brands),
-        category: category.name,
-        categoryPath: getCategoryPath(category.path_display),
+        category: {
+          id: category.id,
+          name: category.name,
+          path: getCategoryPath(category.path_display),
+        },
         imageURL: category?.image_url ?? fallbackImageURL,
         icon: category?.icon ?? '🍗',
         ...(quantity && {

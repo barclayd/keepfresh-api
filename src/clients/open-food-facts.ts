@@ -39,7 +39,7 @@ const getCategory = async (
 export const search = async (
   query: string,
   supabase: SupabaseClient<Database>,
-) => {
+): Promise<Array<ProductSearchItem>> => {
   const searchTerms = encodeURI(query);
   const pageSize = 25;
 
@@ -56,42 +56,41 @@ export const search = async (
 
   const uniqueProducts = getUniqueProducts(openFoodFactsProducts.products);
 
-  const searchProducts: Array<ProductSearchItem | undefined> =
-    await Promise.all(
-      uniqueProducts.map(async (product) => {
-        const quantity = parseQuantity(product.quantity);
-        const productName = toTitleCase(product.productName);
+  const searchProducts = await Promise.all(
+    uniqueProducts.map(async (product) => {
+      const quantity = parseQuantity(product.quantity);
+      const productName = toTitleCase(product.productName);
 
-        const category = await getCategory(
-          product.categoriesTagsEn,
-          productName,
-          supabase,
-        );
+      const category = await getCategory(
+        product.categoriesTagsEn,
+        productName,
+        supabase,
+      );
 
-        // change fallback image to be brand image
-        const fallbackImageURL =
-          'https://keep-fresh-images.s3.eu-west-2.amazonaws.com/milk.png';
+      // change fallback image to be brand image
+      const fallbackImageURL =
+        'https://keep-fresh-images.s3.eu-west-2.amazonaws.com/milk.png';
 
-        if (!category) {
-          return;
-        }
+      if (!category) {
+        return;
+      }
 
-        return {
-          sourceId: product.code,
-          name: productName,
-          brand: toTitleCase(product.brands),
-          category: category.name,
-          categoryPath: getCategoryPath(category.path_display),
-          imageURL: category?.image_url ?? fallbackImageURL,
-          icon: category?.icon ?? '🍗',
-          ...(quantity && {
-            amount: quantity.amount,
-            unit: quantity.unit,
-          }),
-        };
-      }),
-    );
+      return {
+        sourceId: product.code,
+        name: productName,
+        brand: toTitleCase(product.brands),
+        category: category.name,
+        categoryPath: getCategoryPath(category.path_display),
+        imageURL: category?.image_url ?? fallbackImageURL,
+        icon: category?.icon ?? '🍗',
+        ...(quantity && {
+          amount: quantity.amount,
+          unit: quantity.unit,
+        }),
+      };
+    }),
+  );
 
   // send event to save product in database
-  return searchProducts.filter(Boolean);
+  return searchProducts.filter(Boolean) as Array<ProductSearchItem>;
 };

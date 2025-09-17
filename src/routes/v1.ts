@@ -6,12 +6,7 @@ import { search } from '@/clients/open-food-facts';
 import { env } from '@/config/env';
 import { expiryTypeMap } from '@/helpers/expiry';
 import { storageLocationMap } from '@/helpers/storage-location';
-import { categoryInventorySuggestionsRoute } from '@/routes/category';
-import {
-  inventoryGETRoute,
-  inventoryItemRoutePOST,
-  productSearchGETRoute,
-} from '@/routes/inventory';
+import { routes } from '@/routes/api';
 import {
   InventoryItemSuggestions,
   InventoryItemsSchema,
@@ -22,7 +17,7 @@ import type { HonoEnvironment } from '@/types/hono';
 export const createV1Routes = () => {
   const app = new OpenAPIHono<HonoEnvironment>();
 
-  app.openapi(inventoryGETRoute, async (c) => {
+  app.openapi(routes.inventory.get, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE,
@@ -76,31 +71,37 @@ export const createV1Routes = () => {
     );
   });
 
-  app.openapi(inventoryItemRoutePOST, async (c) => {
+  app.openapi(routes.inventory.add, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE,
     );
 
-    const _groceryItem = c.req.valid('json');
+    // add userId to context - need to explore how I can manage sessions
 
-    const inventoryItem = await supabase
-      .from('inventory_items')
-      .insert({
-        user_id: '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2',
-        grocery_item_id: 1,
-        storage_location: 'fridge',
-      })
-      .select();
+    // authenticate user in middleware, retrieve userId from context
 
-    if (inventoryItem.error) {
-      return c.json(
-        {
-          error: `Error occurred creating food item. Error=${JSON.stringify(inventoryItem.error)}`,
-        },
-        400,
-      );
-    }
+    // create if not exist product, get product.id
+
+    const { data, error } = await supabase
+      .from('categories')
+      .select(`
+      id,
+      expiry_type,
+      recommended_storage_location,
+      shelf_life_in_pantry_in_days_unopened,
+      shelf_life_in_pantry_in_days_opened,
+      shelf_life_in_fridge_in_days_unopened,
+      shelf_life_in_fridge_in_days_opened,
+      shelf_life_in_freezer_in_days_unopened,
+      shelf_life_in_freezer_in_days_opened
+    `)
+      .eq('id', parseInt(categoryId, 10))
+      .single();
+
+    // save in inventory_items
+
+    // const _groceryItem = c.req.valid('json');
 
     return c.json(
       {
@@ -110,7 +111,7 @@ export const createV1Routes = () => {
     );
   });
 
-  app.openapi(productSearchGETRoute, async (c) => {
+  app.openapi(routes.products.list, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE,
@@ -128,7 +129,7 @@ export const createV1Routes = () => {
     );
   });
 
-  app.openapi(categoryInventorySuggestionsRoute, async (c) => {
+  app.openapi(routes.categories.inventorySuggestions, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE,

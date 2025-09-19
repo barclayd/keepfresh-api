@@ -9,3 +9,13 @@ export const expiryTypeMap: Record<
   use_by: 'Use By',
   long_life: 'Long Life',
 };
+
+export const expiryLabelMap: Record<
+  ExpiryType,
+  Database['public']['Enums']['expiry_type']
+> = Object.fromEntries(
+  Object.entries(expiryTypeMap).map(([databaseNaming, zodNaming]) => [
+    zodNaming,
+    databaseNaming,
+  ]),
+) as Record<ExpiryType, Database['public']['Enums']['expiry_type']>;

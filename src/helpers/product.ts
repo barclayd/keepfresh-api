@@ -1,4 +1,5 @@
 import type { OpenFoodFactsProduct } from '@/schemas/open-food-facts';
+import type { Database } from '@/types/database';
 
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: NonNullable<T[P]> };
 
@@ -28,3 +29,17 @@ export const getUniqueProducts = (products: OpenFoodFactsProduct[]) => {
     return true;
   }) as ValidatedOpenFoodFactProduct[];
 };
+
+export const Units: Array<Database['public']['Enums']['unit']> = [
+  'mg',
+  'g',
+  'kg',
+  'oz',
+  'lb',
+  'ml',
+  'l',
+  'fl_oz',
+  'pt',
+  'qt',
+  'gal',
+];

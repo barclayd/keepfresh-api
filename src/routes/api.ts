@@ -2,8 +2,8 @@ import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
 import {
   InventoryGETSchemaResponse,
+  InventoryItemAddResponse,
   InventoryItemInput,
-  InventoryItemSchemaResponsePOST,
   InventoryItemSuggestions,
 } from '@/schemas/inventory';
 import { ProductSearchItemsSchema } from '@/schemas/product';
@@ -112,7 +112,7 @@ export const routes = {
         200: {
           content: {
             'application/json': {
-              schema: InventoryItemSchemaResponsePOST['200'],
+              schema: InventoryItemAddResponse['200'],
             },
           },
           description: 'Success response from InventoryItemInput Gen API',
@@ -120,7 +120,7 @@ export const routes = {
         400: {
           content: {
             'application/json': {
-              schema: InventoryItemSchemaResponsePOST['400'],
+              schema: InventoryItemAddResponse['400'],
             },
           },
           description: 'Error occurred when processing payload',
@@ -128,7 +128,7 @@ export const routes = {
         401: {
           content: {
             'application/json': {
-              schema: InventoryItemSchemaResponsePOST['401'],
+              schema: InventoryItemAddResponse['401'],
             },
           },
           description: 'Authorization error response from Grocery Item API',

@@ -1,4 +1,5 @@
 import { z } from '@hono/zod-openapi';
+import { Units } from '@/helpers/product';
 import { ExpiryTypeSchema } from '@/schemas/product';
 import {
   ExpiryType,
@@ -8,12 +9,32 @@ import {
 import type { Database } from '@/types/database';
 
 export const InventoryItemInput = z.object({
-  categoryId: z.int(),
-  brand: z.string(),
-  expiryDate: z.iso.date(),
-  storageLocation: z.enum(StorageLocation),
-  status: z.enum(InventoryItemStatus),
-  expiryType: z.enum(ExpiryType),
+  item: z.object({
+    categoryId: z.int(),
+    brand: z.string(),
+    expiryDate: z.iso.date(),
+    storageLocation: z.enum(StorageLocation),
+    status: z.enum(InventoryItemStatus),
+    expiryType: z.enum(ExpiryType),
+    source: z.object({
+      id: z.int(),
+      ref: z.string(),
+    }),
+  }),
+  product: z.object({
+    name: z.string(),
+    brand: z.string(),
+    expiryType: z.enum(ExpiryType),
+    storageLocation: z.enum(StorageLocation),
+    barcode: z.string().optional(),
+    unit: z.enum(Units).optional(),
+    amount: z.float32().optional(),
+    category_id: z.int(),
+    source: z.object({
+      id: z.int(),
+      ref: z.string(),
+    }),
+  }),
 });
 
 export const StorageLocationSchema = z.enum(StorageLocation);
@@ -78,9 +99,9 @@ export const InventoryItemsSchema = z.array(InventoryItem);
 
 export type InventoryItemInput = z.infer<typeof InventoryItemInput>;
 
-export const InventoryItemSchemaResponsePOST = {
+export const InventoryItemAddResponse = {
   200: z.object({
-    inventoryItemId: z.string(),
+    inventoryItemId: z.int(),
   }),
   400: z.object({
     error: z.string().openapi({

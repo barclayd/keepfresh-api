@@ -1,11 +1,14 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
 import { createClient } from '@supabase/supabase-js';
-import { objectToCamel } from 'ts-case-convert';
+import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { search } from '@/clients/open-food-facts';
 import { env } from '@/config/env';
-import { expiryTypeMap } from '@/helpers/expiry';
-import { storageLocationMap } from '@/helpers/storage-location';
+import { expiryLabelMap, expiryTypeMap } from '@/helpers/expiry';
+import {
+  locationToStorageLocationMap,
+  storageLocationMap,
+} from '@/helpers/storage-location';
 import { routes } from '@/routes/api';
 import {
   InventoryItemSuggestions,
@@ -77,35 +80,66 @@ export const createV1Routes = () => {
       env.SUPABASE_SERVICE_ROLE,
     );
 
-    // add userId to context - need to explore how I can manage sessions
+    const inventoryItemInput = c.req.valid('json');
+
+    // add userId to context - need to explore how I can manage sessions. Better auth?
 
     // authenticate user in middleware, retrieve userId from context
 
-    // create if not exist product, get product.id
-
-    const { data, error } = await supabase
-      .from('categories')
-      .select(`
-      id,
-      expiry_type,
-      recommended_storage_location,
-      shelf_life_in_pantry_in_days_unopened,
-      shelf_life_in_pantry_in_days_opened,
-      shelf_life_in_fridge_in_days_unopened,
-      shelf_life_in_fridge_in_days_opened,
-      shelf_life_in_freezer_in_days_unopened,
-      shelf_life_in_freezer_in_days_opened
-    `)
-      .eq('id', parseInt(categoryId, 10))
+    const productUpsertResponse = await supabase
+      .from('products')
+      .upsert(
+        {
+          ...objectToSnake(inventoryItemInput.product),
+          expiry_type: expiryLabelMap[inventoryItemInput.product.expiryType],
+          recommended_storage_location:
+            locationToStorageLocationMap[
+              inventoryItemInput.product.storageLocation
+            ],
+        },
+        {
+          onConflict: 'source_id,source_ref',
+          ignoreDuplicates: true,
+        },
+      )
+      .select('id')
       .single();
 
-    // save in inventory_items
+    if (productUpsertResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred upserting product. Error=${JSON.stringify(productUpsertResponse.error)}`,
+        },
+        400,
+      );
+    }
 
-    // const _groceryItem = c.req.valid('json');
+    const { id: productId } = productUpsertResponse.data;
+
+    const inventoryItemsResponse = await supabase
+      .from('inventory_items')
+      .insert({
+        ...objectToSnake(inventoryItemInput.item),
+        storage_location:
+          locationToStorageLocationMap[inventoryItemInput.item.storageLocation],
+        product_id: productId,
+        user_id: '123456',
+      })
+      .select('id')
+      .single();
+
+    if (inventoryItemsResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred creating inventory item. Error=${JSON.stringify(inventoryItemsResponse.error)}`,
+        },
+        400,
+      );
+    }
 
     return c.json(
       {
-        inventoryItemId: String(inventoryItem.data[0]?.id),
+        inventoryItemId: inventoryItemsResponse.data.id,
       },
       200,
     );

@@ -10,16 +10,10 @@ import type { Database } from '@/types/database';
 
 export const InventoryItemInput = z.object({
   item: z.object({
-    categoryId: z.int(),
-    brand: z.string(),
-    expiryDate: z.iso.date(),
+    expiryDate: z.iso.datetime().optional(),
     storageLocation: z.enum(StorageLocation),
     status: z.enum(InventoryItemStatus),
     expiryType: z.enum(ExpiryType),
-    source: z.object({
-      id: z.int(),
-      ref: z.string(),
-    }),
   }),
   product: z.object({
     name: z.string(),
@@ -29,11 +23,9 @@ export const InventoryItemInput = z.object({
     barcode: z.string().optional(),
     unit: z.enum(Units).optional(),
     amount: z.float32().optional(),
-    category_id: z.int(),
-    source: z.object({
-      id: z.int(),
-      ref: z.string(),
-    }),
+    categoryId: z.int(),
+    sourceId: z.int(),
+    sourceRef: z.string(),
   }),
 });
 
@@ -92,7 +84,7 @@ export const InventoryItemSuggestions = z.object({
     }),
   }),
   expiryType: ExpiryTypeSchema,
-  recommendedStorageLocation: StorageLocationSchema,
+  storageLocation: StorageLocationSchema,
 });
 
 export const InventoryItemsSchema = z.array(InventoryItem);

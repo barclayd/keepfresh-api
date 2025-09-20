@@ -92,14 +92,15 @@ export const createV1Routes = () => {
         {
           ...objectToSnake(inventoryItemInput.product),
           expiry_type: expiryLabelMap[inventoryItemInput.product.expiryType],
-          recommended_storage_location:
+          storage_location:
             locationToStorageLocationMap[
               inventoryItemInput.product.storageLocation
             ],
+          source_ref: inventoryItemInput.product.sourceRef,
+          source_id: inventoryItemInput.product.sourceId,
         },
         {
           onConflict: 'source_id,source_ref',
-          ignoreDuplicates: true,
         },
       )
       .select('id')
@@ -122,8 +123,9 @@ export const createV1Routes = () => {
         ...objectToSnake(inventoryItemInput.item),
         storage_location:
           locationToStorageLocationMap[inventoryItemInput.item.storageLocation],
+        expiry_type: expiryLabelMap[inventoryItemInput.item.expiryType],
         product_id: productId,
-        user_id: '123456',
+        user_id: '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2',
       })
       .select('id')
       .single();
@@ -176,7 +178,7 @@ export const createV1Routes = () => {
       .select(`
       id,
       expiry_type,
-      recommended_storage_location,
+      storage_location,
       shelf_life_in_pantry_in_days_unopened,
       shelf_life_in_pantry_in_days_opened,
       shelf_life_in_fridge_in_days_unopened,
@@ -210,8 +212,7 @@ export const createV1Routes = () => {
         },
       },
       expiryType: expiryTypeMap[data.expiry_type],
-      recommendedStorageLocation:
-        storageLocationMap[data.recommended_storage_location],
+      storageLocation: storageLocationMap[data.storage_location],
     };
 
     const inventoryItemSuggestions = InventoryItemSuggestions.parse(

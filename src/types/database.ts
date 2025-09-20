@@ -24,13 +24,13 @@ export type Database = {
           name: string;
           path: unknown;
           path_display: string;
-          recommended_storage_location: Database['public']['Enums']['storage_location'];
           shelf_life_in_freezer_in_days_opened: number | null;
           shelf_life_in_freezer_in_days_unopened: number | null;
           shelf_life_in_fridge_in_days_opened: number | null;
           shelf_life_in_fridge_in_days_unopened: number | null;
           shelf_life_in_pantry_in_days_opened: number | null;
           shelf_life_in_pantry_in_days_unopened: number | null;
+          storage_location: Database['public']['Enums']['storage_location'];
         };
         Insert: {
           created_at?: string;
@@ -41,13 +41,13 @@ export type Database = {
           name: string;
           path: unknown;
           path_display: string;
-          recommended_storage_location: Database['public']['Enums']['storage_location'];
           shelf_life_in_freezer_in_days_opened?: number | null;
           shelf_life_in_freezer_in_days_unopened?: number | null;
           shelf_life_in_fridge_in_days_opened?: number | null;
           shelf_life_in_fridge_in_days_unopened?: number | null;
           shelf_life_in_pantry_in_days_opened?: number | null;
           shelf_life_in_pantry_in_days_unopened?: number | null;
+          storage_location: Database['public']['Enums']['storage_location'];
         };
         Update: {
           created_at?: string;
@@ -58,13 +58,13 @@ export type Database = {
           name?: string;
           path?: unknown;
           path_display?: string;
-          recommended_storage_location?: Database['public']['Enums']['storage_location'];
           shelf_life_in_freezer_in_days_opened?: number | null;
           shelf_life_in_freezer_in_days_unopened?: number | null;
           shelf_life_in_fridge_in_days_opened?: number | null;
           shelf_life_in_fridge_in_days_unopened?: number | null;
           shelf_life_in_pantry_in_days_opened?: number | null;
           shelf_life_in_pantry_in_days_unopened?: number | null;
+          storage_location?: Database['public']['Enums']['storage_location'];
         };
         Relationships: [];
       };
@@ -99,6 +99,7 @@ export type Database = {
           created_at: string;
           discarded_at: string | null;
           expiry_date: string | null;
+          expiry_type: Database['public']['Enums']['expiry_type'] | null;
           id: number;
           location_changed_at: string | null;
           move_count: number;
@@ -122,6 +123,7 @@ export type Database = {
           created_at?: string;
           discarded_at?: string | null;
           expiry_date?: string | null;
+          expiry_type?: Database['public']['Enums']['expiry_type'] | null;
           id?: number;
           location_changed_at?: string | null;
           move_count?: number;
@@ -145,6 +147,7 @@ export type Database = {
           created_at?: string;
           discarded_at?: string | null;
           expiry_date?: string | null;
+          expiry_type?: Database['public']['Enums']['expiry_type'] | null;
           id?: number;
           location_changed_at?: string | null;
           move_count?: number;
@@ -208,18 +211,16 @@ export type Database = {
           amount: number | null;
           barcode: string | null;
           brand: string;
-          category_id: number | null;
+          category_id: number;
           created_at: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id: number;
           image_url: string | null;
           lifespan_in_days: number | null;
           name: string;
-          recommended_storage_location:
-            | Database['public']['Enums']['storage_location']
-            | null;
-          source_id: number | null;
-          source_ref: string | null;
+          source_id: number;
+          source_ref: string;
+          storage_location: Database['public']['Enums']['storage_location'];
           unit: Database['public']['Enums']['unit'] | null;
           updated_at: string;
         };
@@ -227,18 +228,16 @@ export type Database = {
           amount?: number | null;
           barcode?: string | null;
           brand: string;
-          category_id?: number | null;
+          category_id: number;
           created_at?: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id?: number;
           image_url?: string | null;
           lifespan_in_days?: number | null;
           name: string;
-          recommended_storage_location?:
-            | Database['public']['Enums']['storage_location']
-            | null;
-          source_id?: number | null;
-          source_ref?: string | null;
+          source_id: number;
+          source_ref: string;
+          storage_location: Database['public']['Enums']['storage_location'];
           unit?: Database['public']['Enums']['unit'] | null;
           updated_at?: string;
         };
@@ -246,18 +245,16 @@ export type Database = {
           amount?: number | null;
           barcode?: string | null;
           brand?: string;
-          category_id?: number | null;
+          category_id?: number;
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
           id?: number;
           image_url?: string | null;
           lifespan_in_days?: number | null;
           name?: string;
-          recommended_storage_location?:
-            | Database['public']['Enums']['storage_location']
-            | null;
-          source_id?: number | null;
-          source_ref?: string | null;
+          source_id?: number;
+          source_ref?: string;
+          storage_location?: Database['public']['Enums']['storage_location'];
           unit?: Database['public']['Enums']['unit'] | null;
           updated_at?: string;
         };

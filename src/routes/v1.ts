@@ -1,17 +1,15 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
 import { createClient } from '@supabase/supabase-js';
-import { objectToCamel } from 'ts-case-convert';
+import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { search } from '@/clients/open-food-facts';
 import { env } from '@/config/env';
-import { expiryTypeMap } from '@/helpers/expiry';
-import { storageLocationMap } from '@/helpers/storage-location';
-import { categoryInventorySuggestionsRoute } from '@/routes/category';
+import { expiryLabelMap, expiryTypeMap } from '@/helpers/expiry';
 import {
-  inventoryGETRoute,
-  inventoryItemRoutePOST,
-  productSearchGETRoute,
-} from '@/routes/inventory';
+  locationToStorageLocationMap,
+  storageLocationMap,
+} from '@/helpers/storage-location';
+import { routes } from '@/routes/api';
 import {
   InventoryItemSuggestions,
   InventoryItemsSchema,
@@ -22,7 +20,7 @@ import type { HonoEnvironment } from '@/types/hono';
 export const createV1Routes = () => {
   const app = new OpenAPIHono<HonoEnvironment>();
 
-  app.openapi(inventoryGETRoute, async (c) => {
+  app.openapi(routes.inventory.get, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE,
@@ -76,27 +74,66 @@ export const createV1Routes = () => {
     );
   });
 
-  app.openapi(inventoryItemRoutePOST, async (c) => {
+  app.openapi(routes.inventory.add, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE,
     );
 
-    const _groceryItem = c.req.valid('json');
+    const inventoryItemInput = c.req.valid('json');
 
-    const inventoryItem = await supabase
-      .from('inventory_items')
-      .insert({
-        user_id: '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2',
-        grocery_item_id: 1,
-        storage_location: 'fridge',
-      })
-      .select();
+    // add userId to context - need to explore how I can manage sessions. Better auth?
 
-    if (inventoryItem.error) {
+    // authenticate user in middleware, retrieve userId from context
+
+    const productUpsertResponse = await supabase
+      .from('products')
+      .upsert(
+        {
+          ...objectToSnake(inventoryItemInput.product),
+          expiry_type: expiryLabelMap[inventoryItemInput.product.expiryType],
+          storage_location:
+            locationToStorageLocationMap[
+              inventoryItemInput.product.storageLocation
+            ],
+          source_ref: inventoryItemInput.product.sourceRef,
+          source_id: inventoryItemInput.product.sourceId,
+        },
+        {
+          onConflict: 'source_id,source_ref',
+        },
+      )
+      .select('id')
+      .single();
+
+    if (productUpsertResponse.error) {
       return c.json(
         {
-          error: `Error occurred creating food item. Error=${JSON.stringify(inventoryItem.error)}`,
+          error: `Error occurred upserting product. Error=${JSON.stringify(productUpsertResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const { id: productId } = productUpsertResponse.data;
+
+    const inventoryItemsResponse = await supabase
+      .from('inventory_items')
+      .insert({
+        ...objectToSnake(inventoryItemInput.item),
+        storage_location:
+          locationToStorageLocationMap[inventoryItemInput.item.storageLocation],
+        expiry_type: expiryLabelMap[inventoryItemInput.item.expiryType],
+        product_id: productId,
+        user_id: '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2',
+      })
+      .select('id')
+      .single();
+
+    if (inventoryItemsResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred creating inventory item. Error=${JSON.stringify(inventoryItemsResponse.error)}`,
         },
         400,
       );
@@ -104,13 +141,13 @@ export const createV1Routes = () => {
 
     return c.json(
       {
-        inventoryItemId: String(inventoryItem.data[0]?.id),
+        inventoryItemId: inventoryItemsResponse.data.id,
       },
       200,
     );
   });
 
-  app.openapi(productSearchGETRoute, async (c) => {
+  app.openapi(routes.products.list, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE,
@@ -128,7 +165,7 @@ export const createV1Routes = () => {
     );
   });
 
-  app.openapi(categoryInventorySuggestionsRoute, async (c) => {
+  app.openapi(routes.categories.inventorySuggestions, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
       env.SUPABASE_SERVICE_ROLE,
@@ -141,7 +178,7 @@ export const createV1Routes = () => {
       .select(`
       id,
       expiry_type,
-      recommended_storage_location,
+      storage_location,
       shelf_life_in_pantry_in_days_unopened,
       shelf_life_in_pantry_in_days_opened,
       shelf_life_in_fridge_in_days_unopened,
@@ -175,8 +212,7 @@ export const createV1Routes = () => {
         },
       },
       expiryType: expiryTypeMap[data.expiry_type],
-      recommendedStorageLocation:
-        storageLocationMap[data.recommended_storage_location],
+      storageLocation: storageLocationMap[data.storage_location],
     };
 
     const inventoryItemSuggestions = InventoryItemSuggestions.parse(

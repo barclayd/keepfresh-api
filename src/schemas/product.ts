@@ -2,7 +2,6 @@ import { z } from '@hono/zod-openapi';
 import { ExpiryType } from '@/types/category';
 
 export const ProductSearchItemSchema = z.object({
-  sourceId: z.string(),
   name: z.string(),
   brand: z.string(),
   category: z.object({
@@ -14,6 +13,10 @@ export const ProductSearchItemSchema = z.object({
   unit: z.string().optional(),
   icon: z.string().optional(),
   imageURL: z.string().optional(),
+  source: z.object({
+    id: z.int(),
+    ref: z.string(),
+  }),
 });
 
 export type ProductSearchItem = z.infer<typeof ProductSearchItemSchema>;

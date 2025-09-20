@@ -76,7 +76,6 @@ export const search = async (
       }
 
       return {
-        sourceId: product.code,
         name: productName,
         brand: toTitleCase(product.brands),
         category: {
@@ -90,6 +89,10 @@ export const search = async (
           amount: quantity.amount,
           unit: quantity.unit,
         }),
+        source: {
+          id: 1,
+          ref: product.code,
+        },
       };
     }),
   );

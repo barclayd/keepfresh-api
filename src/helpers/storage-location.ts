@@ -9,3 +9,10 @@ export const storageLocationMap: Record<
   fridge: 'Fridge',
   freezer: 'Freezer',
 };
+
+export const locationToStorageLocationMap = Object.fromEntries(
+  Object.entries(storageLocationMap).map(([databaseNaming, zodNaming]) => [
+    zodNaming,
+    databaseNaming,
+  ]),
+) as Record<StorageLocation, Database['public']['Enums']['storage_location']>;

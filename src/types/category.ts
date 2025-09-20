@@ -13,3 +13,10 @@ export const StorageLocation: Array<StorageLocation> = [
   'Freezer',
   'Pantry',
 ];
+
+export type InventoryItemStatus = 'opened' | 'unopened';
+
+export const InventoryItemStatus: Array<InventoryItemStatus> = [
+  'opened',
+  'unopened',
+] as const;

@@ -29,21 +29,29 @@ export const createV1Routes = () => {
     const { data, error } = await supabase
       .from('inventory_items')
       .select(`
+    id,
+    created_at,
+    opened_at,
+    status,
+    storage_location,
+    consumption_prediction,
+    expiry_date,
+    expiry_type,
+    products (
       id,
-      created_at,
-      consumption_prediction,
-      status,
-      storage_location,
-      products (
-        id,
+      name,
+      brand,
+      image_url,
+      categories (
         name,
-        brand,
         image_url,
-        category,
-        amount,
-        unit
-      )
-      `)
+        icon,
+        path_display
+      ),
+      amount,
+      unit
+    )
+  `)
       .eq('user_id', '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2');
 
     if (error) {
@@ -243,11 +251,11 @@ export const createV1Routes = () => {
         description: 'Version 1 API',
       },
       {
-        url: 'https://lead-gen-api.anyvan.com/v1',
+        url: 'https://api.keepfre.sh/v1',
         description: 'Production V1 API',
       },
       {
-        url: 'https://stage-lead-gen-api.anyvan.com/v1',
+        url: 'https://api.keepfre.sh/v1',
         description: 'Staging V1 API',
       },
     ],

@@ -1,7 +1,7 @@
 import type { ExpiryType } from '@/types/category';
 import type { Database } from '@/types/database';
 
-export const expiryTypeMap: Record<
+export const expiryTypeDbToExpiryTypeMap: Record<
   Database['public']['Enums']['expiry_type'],
   ExpiryType
 > = {
@@ -10,12 +10,11 @@ export const expiryTypeMap: Record<
   long_life: 'Long Life',
 };
 
-export const expiryLabelMap: Record<
+export const expiryTypeToExpiryTypeDbMap: Record<
   ExpiryType,
   Database['public']['Enums']['expiry_type']
 > = Object.fromEntries(
-  Object.entries(expiryTypeMap).map(([databaseNaming, zodNaming]) => [
-    zodNaming,
-    databaseNaming,
-  ]),
+  Object.entries(expiryTypeDbToExpiryTypeMap).map(
+    ([databaseNaming, zodNaming]) => [zodNaming, databaseNaming],
+  ),
 ) as Record<ExpiryType, Database['public']['Enums']['expiry_type']>;

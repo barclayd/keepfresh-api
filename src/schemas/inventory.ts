@@ -1,14 +1,41 @@
 import { z } from '@hono/zod-openapi';
-import { expiryLabelMap } from '@/helpers/expiry';
+import {
+  expiryTypeDbToExpiryTypeMap,
+  expiryTypeToExpiryTypeDbMap,
+} from '@/helpers/expiry';
 import { Units } from '@/helpers/product';
-import { locationToStorageLocationMap } from '@/helpers/storage-location';
+import {
+  storageLocationDbToStorageLocationMap,
+  storageLocationMap,
+} from '@/helpers/storage-location';
 import { ExpiryTypeSchema } from '@/schemas/product';
 import {
   ExpiryType,
+  ExpiryTypeDb,
   InventoryItemStatus,
   StorageLocation,
+  StorageLocationDb,
 } from '@/types/category';
 import type { Database } from '@/types/database';
+
+const storageLocationDbToStorageLocation = z.codec(
+  z.enum(StorageLocationDb),
+  z.enum(StorageLocation),
+  {
+    decode: (storageLocation) => storageLocationMap[storageLocation],
+    encode: (storageLocation) =>
+      storageLocationDbToStorageLocationMap[storageLocation],
+  },
+);
+
+const expiryTypeDbToExpiryType = z.codec(
+  z.enum(ExpiryTypeDb),
+  z.enum(ExpiryType),
+  {
+    decode: (expiryType) => expiryTypeDbToExpiryTypeMap[expiryType],
+    encode: (expiryType) => expiryTypeToExpiryTypeDbMap[expiryType],
+  },
+);
 
 export const InventoryItemInput = z.object({
   item: z.object({
@@ -40,7 +67,7 @@ const status: Array<
 export const timestampzTransformer = z
   .string()
   .transform((raw, ctx) => {
-    const iso = raw.replace(' ', 'T'); // make ISO-like
+    const iso = raw.replace(' ', 'T');
     const date = new Date(iso);
 
     if (Number.isNaN(date.getTime())) {
@@ -61,14 +88,10 @@ export const InventoryItemsSchema = z.array(
     createdAt: timestampzTransformer,
     openedAt: timestampzTransformer.nullable(),
     status: z.enum(status),
-    storageLocation: z.enum(
-      StorageLocation.map((location) => locationToStorageLocationMap[location]),
-    ),
+    storageLocation: storageLocationDbToStorageLocation,
     consumptionPrediction: z.number(),
     expiryDate: timestampzTransformer,
-    expiryType: z.enum(
-      ExpiryType.map((expiryType) => expiryLabelMap[expiryType]),
-    ),
+    expiryType: expiryTypeDbToExpiryType,
     products: z.object({
       id: z.number(),
       name: z.string(),

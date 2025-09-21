@@ -84,7 +84,7 @@ export const InventoryItemSuggestions = z.object({
     }),
   }),
   expiryType: ExpiryTypeSchema,
-  storageLocation: StorageLocationSchema,
+  recommendedStorageLocation: StorageLocationSchema,
 });
 
 export const InventoryItemsSchema = z.array(InventoryItem);

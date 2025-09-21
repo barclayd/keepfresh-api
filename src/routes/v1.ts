@@ -178,7 +178,7 @@ export const createV1Routes = () => {
       .select(`
       id,
       expiry_type,
-      storage_location,
+      recommended_storage_location,
       shelf_life_in_pantry_in_days_unopened,
       shelf_life_in_pantry_in_days_opened,
       shelf_life_in_fridge_in_days_unopened,
@@ -212,7 +212,8 @@ export const createV1Routes = () => {
         },
       },
       expiryType: expiryTypeMap[data.expiry_type],
-      storageLocation: storageLocationMap[data.storage_location],
+      recommendedStorageLocation:
+        storageLocationMap[data.recommended_storage_location],
     };
 
     const inventoryItemSuggestions = InventoryItemSuggestions.parse(

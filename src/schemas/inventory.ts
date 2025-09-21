@@ -18,7 +18,7 @@ import {
 } from '@/types/category';
 import type { Database } from '@/types/database';
 
-const storageLocationDbToStorageLocation = z.codec(
+export const storageLocationDbToStorageLocationCodec = z.codec(
   z.enum(StorageLocationDb),
   z.enum(StorageLocation),
   {
@@ -28,7 +28,7 @@ const storageLocationDbToStorageLocation = z.codec(
   },
 );
 
-const expiryTypeDbToExpiryType = z.codec(
+export const expiryTypeDbToExpiryTypeCodec = z.codec(
   z.enum(ExpiryTypeDb),
   z.enum(ExpiryType),
   {
@@ -88,10 +88,10 @@ export const InventoryItemsSchema = z.array(
     createdAt: timestampzTransformer,
     openedAt: timestampzTransformer.nullable(),
     status: z.enum(status),
-    storageLocation: storageLocationDbToStorageLocation,
+    storageLocation: storageLocationDbToStorageLocationCodec,
     consumptionPrediction: z.number(),
     expiryDate: timestampzTransformer,
-    expiryType: expiryTypeDbToExpiryType,
+    expiryType: expiryTypeDbToExpiryTypeCodec,
     products: z.object({
       id: z.number(),
       name: z.string(),

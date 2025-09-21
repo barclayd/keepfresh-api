@@ -4,18 +4,13 @@ import { createClient } from '@supabase/supabase-js';
 import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { search } from '@/clients/open-food-facts';
 import { env } from '@/config/env';
-import {
-  expiryTypeDbToExpiryTypeMap,
-  expiryTypeToExpiryTypeDbMap,
-} from '@/helpers/expiry';
-import {
-  storageLocationDbToStorageLocationMap,
-  storageLocationMap,
-} from '@/helpers/storage-location';
+import { storageLocationDbToStorageLocationMap } from '@/helpers/storage-location';
 import { routes } from '@/routes/api';
 import {
+  expiryTypeDbToExpiryTypeCodec,
   InventoryItemSuggestions,
   InventoryItemsSchema,
+  storageLocationDbToStorageLocationCodec,
 } from '@/schemas/inventory';
 import type { Database } from '@/types/database';
 import type { HonoEnvironment } from '@/types/hono';
@@ -102,12 +97,12 @@ export const createV1Routes = () => {
       .upsert(
         {
           ...objectToSnake(inventoryItemInput.product),
-          expiry_type:
-            expiryTypeToExpiryTypeDbMap[inventoryItemInput.product.expiryType],
-          storage_location:
-            storageLocationDbToStorageLocationMap[
-              inventoryItemInput.product.storageLocation
-            ],
+          expiry_type: expiryTypeDbToExpiryTypeCodec.encode(
+            inventoryItemInput.product.expiryType,
+          ),
+          storage_location: storageLocationDbToStorageLocationCodec.encode(
+            inventoryItemInput.product.storageLocation,
+          ),
           source_ref: inventoryItemInput.product.sourceRef,
           source_id: inventoryItemInput.product.sourceId,
         },
@@ -137,8 +132,9 @@ export const createV1Routes = () => {
           storageLocationDbToStorageLocationMap[
             inventoryItemInput.item.storageLocation
           ],
-        expiry_type:
-          expiryTypeToExpiryTypeDbMap[inventoryItemInput.item.expiryType],
+        expiry_type: expiryTypeDbToExpiryTypeCodec.encode(
+          inventoryItemInput.product.expiryType,
+        ),
         product_id: productId,
         user_id: '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2',
       })
@@ -226,9 +222,11 @@ export const createV1Routes = () => {
           freezer: data.shelf_life_in_freezer_in_days_unopened,
         },
       },
-      expiryType: expiryTypeDbToExpiryTypeMap[data.expiry_type],
+      expiryType: expiryTypeDbToExpiryTypeCodec.decode(data.expiry_type),
       recommendedStorageLocation:
-        storageLocationMap[data.recommended_storage_location],
+        storageLocationDbToStorageLocationCodec.decode(
+          data.recommended_storage_location,
+        ),
     };
 
     const inventoryItemSuggestions = InventoryItemSuggestions.parse(

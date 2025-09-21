@@ -24,13 +24,13 @@ export type Database = {
           name: string;
           path: unknown;
           path_display: string;
+          recommended_storage_location: Database['public']['Enums']['storage_location'];
           shelf_life_in_freezer_in_days_opened: number | null;
           shelf_life_in_freezer_in_days_unopened: number | null;
           shelf_life_in_fridge_in_days_opened: number | null;
           shelf_life_in_fridge_in_days_unopened: number | null;
           shelf_life_in_pantry_in_days_opened: number | null;
           shelf_life_in_pantry_in_days_unopened: number | null;
-          storage_location: Database['public']['Enums']['storage_location'];
         };
         Insert: {
           created_at?: string;
@@ -41,13 +41,13 @@ export type Database = {
           name: string;
           path: unknown;
           path_display: string;
+          recommended_storage_location: Database['public']['Enums']['storage_location'];
           shelf_life_in_freezer_in_days_opened?: number | null;
           shelf_life_in_freezer_in_days_unopened?: number | null;
           shelf_life_in_fridge_in_days_opened?: number | null;
           shelf_life_in_fridge_in_days_unopened?: number | null;
           shelf_life_in_pantry_in_days_opened?: number | null;
           shelf_life_in_pantry_in_days_unopened?: number | null;
-          storage_location: Database['public']['Enums']['storage_location'];
         };
         Update: {
           created_at?: string;
@@ -58,13 +58,13 @@ export type Database = {
           name?: string;
           path?: unknown;
           path_display?: string;
+          recommended_storage_location?: Database['public']['Enums']['storage_location'];
           shelf_life_in_freezer_in_days_opened?: number | null;
           shelf_life_in_freezer_in_days_unopened?: number | null;
           shelf_life_in_fridge_in_days_opened?: number | null;
           shelf_life_in_fridge_in_days_unopened?: number | null;
           shelf_life_in_pantry_in_days_opened?: number | null;
           shelf_life_in_pantry_in_days_unopened?: number | null;
-          storage_location?: Database['public']['Enums']['storage_location'];
         };
         Relationships: [];
       };

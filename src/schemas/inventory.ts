@@ -1,5 +1,7 @@
 import { z } from '@hono/zod-openapi';
+import { expiryLabelMap } from '@/helpers/expiry';
 import { Units } from '@/helpers/product';
+import { locationToStorageLocationMap } from '@/helpers/storage-location';
 import { ExpiryTypeSchema } from '@/schemas/product';
 import {
   ExpiryType,
@@ -53,22 +55,36 @@ export const timestampzTransformer = z
   })
   .pipe(z.iso.datetime());
 
-export const InventoryItem = z.object({
-  id: z.number(),
-  createdAt: timestampzTransformer,
-  consumptionPrediction: z.int(),
-  storageLocation: StorageLocationSchema,
-  products: z.object({
-    id: z.int(),
-    name: z.string(),
-    brand: z.string(),
-    imageUrl: z.string().nullable(),
-    category: z.string(),
-    amount: z.number(),
-    unit: z.string(),
+export const InventoryItemsSchema = z.array(
+  z.object({
+    id: z.number(),
+    createdAt: timestampzTransformer,
+    openedAt: timestampzTransformer.nullable(),
+    status: z.enum(status),
+    storageLocation: z.enum(
+      StorageLocation.map((location) => locationToStorageLocationMap[location]),
+    ),
+    consumptionPrediction: z.number(),
+    expiryDate: timestampzTransformer,
+    expiryType: z.enum(
+      ExpiryType.map((expiryType) => expiryLabelMap[expiryType]),
+    ),
+    products: z.object({
+      id: z.number(),
+      name: z.string(),
+      unit: z.string(),
+      brand: z.string(),
+      amount: z.number(),
+      imageUrl: z.string().nullable(),
+      categories: z.object({
+        icon: z.string().nullable(),
+        name: z.string(),
+        imageUrl: z.string().nullable(),
+        pathDisplay: z.string(),
+      }),
+    }),
   }),
-  status: z.enum(status),
-});
+);
 
 export const InventoryItemSuggestions = z.object({
   shelfLifeInDays: z.object({
@@ -84,10 +100,8 @@ export const InventoryItemSuggestions = z.object({
     }),
   }),
   expiryType: ExpiryTypeSchema,
-  storageLocation: StorageLocationSchema,
+  recommendedStorageLocation: StorageLocationSchema,
 });
-
-export const InventoryItemsSchema = z.array(InventoryItem);
 
 export type InventoryItemInput = z.infer<typeof InventoryItemInput>;
 

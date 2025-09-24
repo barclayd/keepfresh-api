@@ -4,8 +4,8 @@
     "": {
       "name": "lead-gen-api",
       "dependencies": {
-        "@cloudflare/workers-types": "latest",
-        "@hono/zod-openapi": "latest",
+        "@cloudflare/workers-types": "^4.20250906.0",
+        "@hono/zod-openapi": "^1.1.0",
         "@scalar/hono-api-reference": "^0.9.13",
         "@supabase/supabase-js": "^2.57.2",
         "hono": "^4.9.1",

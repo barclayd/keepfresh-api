@@ -10,10 +10,10 @@
         "@supabase/supabase-js": "^2.57.2",
         "hono": "^4.9.1",
         "ts-case-convert": "^2.1.0",
-        "zod": "latest",
+        "zod": "^4.1.11",
       },
       "devDependencies": {
-        "@biomejs/biome": "latest",
+        "@biomejs/biome": "^2.2.4",
         "@types/bun": "^1.2.20",
       },
       "peerDependencies": {

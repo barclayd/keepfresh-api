@@ -10,7 +10,7 @@ export const storageLocationMap: Record<
   freezer: 'Freezer',
 };
 
-export const locationToStorageLocationMap = Object.fromEntries(
+export const storageLocationDbToStorageLocationMap = Object.fromEntries(
   Object.entries(storageLocationMap).map(([databaseNaming, zodNaming]) => [
     zodNaming,
     databaseNaming,

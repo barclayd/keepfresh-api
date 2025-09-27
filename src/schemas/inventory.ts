@@ -1,39 +1,23 @@
 import { z } from '@hono/zod-openapi';
-import {
-  expiryTypeDbToExpiryTypeMap,
-  expiryTypeToExpiryTypeDbMap,
-} from '@/helpers/expiry';
 import { Units } from '@/helpers/product';
-import { ExpiryTypeSchema } from '@/schemas/product';
-import {
-  ExpiryType,
-  ExpiryTypeDb,
-  InventoryItemStatus,
-  StorageLocation,
-} from '@/types/category';
+import { InventoryItemStatus, StorageLocation } from '@/types/category';
 import type { Database } from '@/types/database';
-import { storageLocationFieldMapper } from '@/utils/field-mapper';
-
-export const expiryTypeDbToExpiryTypeCodec = z.codec(
-  z.enum(ExpiryTypeDb),
-  z.enum(ExpiryType),
-  {
-    decode: (expiryType) => expiryTypeDbToExpiryTypeMap[expiryType],
-    encode: (expiryType) => expiryTypeToExpiryTypeDbMap[expiryType],
-  },
-);
+import {
+  expiryTypeFieldMapper,
+  storageLocationFieldMapper,
+} from '@/utils/field-mapper';
 
 export const InventoryItemInput = z.object({
   item: z.object({
     expiryDate: z.iso.datetime().optional(),
     storageLocation: storageLocationFieldMapper.inputSchema,
     status: z.enum(InventoryItemStatus),
-    expiryType: z.enum(ExpiryType),
+    expiryType: expiryTypeFieldMapper.inputSchema,
   }),
   product: z.object({
     name: z.string(),
     brand: z.string(),
-    expiryType: z.enum(ExpiryType),
+    expiryType: expiryTypeFieldMapper.inputSchema,
     storageLocation: storageLocationFieldMapper.inputSchema,
     barcode: z.string().optional(),
     unit: z.enum(Units).optional(),
@@ -87,7 +71,7 @@ export const InventoryItemsSchema = z.array(
     storageLocation: storageLocationFieldMapper.inputSchema,
     consumptionPrediction: z.number(),
     expiryDate: timestampzTransformer,
-    expiryType: expiryTypeDbToExpiryTypeCodec,
+    expiryType: expiryTypeFieldMapper.inputSchema,
     product: z.object({
       id: z.number(),
       name: z.string(),
@@ -118,7 +102,7 @@ export const InventoryItemSuggestions = z.object({
       freezer: z.int().nullable(),
     }),
   }),
-  expiryType: ExpiryTypeSchema,
+  expiryType: expiryTypeFieldMapper.outputSchema,
   recommendedStorageLocation: storageLocationFieldMapper.outputSchema,
 });
 

@@ -6,7 +6,6 @@ import { search } from '@/clients/open-food-facts';
 import { env } from '@/config/env';
 import { routes } from '@/routes/api';
 import {
-  expiryTypeDbToExpiryTypeCodec,
   InventoryItemSuggestions,
   InventoryItemsSchema,
 } from '@/schemas/inventory';
@@ -87,9 +86,6 @@ export const createV1Routes = () => {
       .upsert(
         {
           ...objectToSnake(inventoryItemInput.product),
-          expiry_type: expiryTypeDbToExpiryTypeCodec.encode(
-            inventoryItemInput.product.expiryType,
-          ),
           source_ref: inventoryItemInput.product.sourceRef,
           source_id: inventoryItemInput.product.sourceId,
         },
@@ -116,9 +112,6 @@ export const createV1Routes = () => {
       .from('inventory_items')
       .insert({
         ...objectToSnake(inventoryItemInput.item),
-        expiry_type: expiryTypeDbToExpiryTypeCodec.encode(
-          inventoryItemInput.product.expiryType,
-        ),
         product_id: productId,
         user_id: '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2',
       })
@@ -165,6 +158,8 @@ export const createV1Routes = () => {
           : {}),
       })
       .eq('id', inventoryItemId);
+
+    // send async event to Cloudflare Queue
 
     if (error) {
       return c.json(
@@ -238,7 +233,7 @@ export const createV1Routes = () => {
           freezer: data.shelf_life_in_freezer_in_days_unopened,
         },
       },
-      expiryType: expiryTypeDbToExpiryTypeCodec.decode(data.expiry_type),
+      expiryType: data.expiry_type,
       recommendedStorageLocation: data.recommended_storage_location,
     };
 

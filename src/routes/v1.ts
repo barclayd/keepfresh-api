@@ -35,7 +35,7 @@ export const createV1Routes = () => {
     consumption_prediction,
     expiry_date,
     expiry_type,
-    products (
+    product:products (
       id,
       name,
       brand,

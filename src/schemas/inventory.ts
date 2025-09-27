@@ -92,7 +92,7 @@ export const InventoryItemsSchema = z.array(
     consumptionPrediction: z.number(),
     expiryDate: timestampzTransformer,
     expiryType: expiryTypeDbToExpiryTypeCodec,
-    products: z.object({
+    product: z.object({
       id: z.number(),
       name: z.string(),
       unit: z.string(),

@@ -58,6 +58,16 @@ export const InventoryItemInput = z.object({
   }),
 });
 
+export const UpdateInventoryItemInput = z
+  .object({
+    status: z.enum(InventoryItemStatus).optional(),
+    storageLocation: z.enum(StorageLocation).optional(),
+  })
+  .refine(
+    (data) => data.status !== undefined || data.storageLocation !== undefined,
+    { message: 'Either status or storageLocation must be provided' },
+  );
+
 export const StorageLocationSchema = z.enum(StorageLocation);
 
 const status: Array<

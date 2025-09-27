@@ -19,12 +19,8 @@ export const createV1Routes = () => {
   const app = new OpenAPIHono<HonoEnvironment>();
 
   app.openapi(routes.inventory.get, async (c) => {
-    const supabase = createClient<Database>(
-      env.SUPABASE_URL,
-      env.SUPABASE_SERVICE_ROLE,
-    );
-
-    const { data, error } = await supabase
+    const { data, error } = await c
+      .get('supabase')
       .from('inventory_items')
       .select(`
     id,
@@ -81,18 +77,14 @@ export const createV1Routes = () => {
   });
 
   app.openapi(routes.inventory.add, async (c) => {
-    const supabase = createClient<Database>(
-      env.SUPABASE_URL,
-      env.SUPABASE_SERVICE_ROLE,
-    );
-
     const inventoryItemInput = c.req.valid('json');
 
     // add userId to context - need to explore how I can manage sessions. Better auth?
 
     // authenticate user in middleware, retrieve userId from context
 
-    const productUpsertResponse = await supabase
+    const productUpsertResponse = await c
+      .get('supabase')
       .from('products')
       .upsert(
         {
@@ -124,7 +116,8 @@ export const createV1Routes = () => {
 
     const { id: productId } = productUpsertResponse.data;
 
-    const inventoryItemsResponse = await supabase
+    const inventoryItemsResponse = await c
+      .get('supabase')
       .from('inventory_items')
       .insert({
         ...objectToSnake(inventoryItemInput.item),
@@ -158,6 +151,22 @@ export const createV1Routes = () => {
     );
   });
 
+  app.openapi(routes.inventory.update, async (c) => {
+    const { inventoryItemId } = c.req.valid('param');
+
+    const update = c.req.valid('json');
+
+    if (update.status) {
+      // send status event
+    }
+
+    if (update.storageLocation) {
+      // send storage update event
+    }
+
+    return c.body(null, 204);
+  });
+
   app.openapi(routes.products.list, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
@@ -177,14 +186,10 @@ export const createV1Routes = () => {
   });
 
   app.openapi(routes.categories.inventorySuggestions, async (c) => {
-    const supabase = createClient<Database>(
-      env.SUPABASE_URL,
-      env.SUPABASE_SERVICE_ROLE,
-    );
-
     const { categoryId } = c.req.valid('param');
 
-    const { data, error } = await supabase
+    const { data, error } = await c
+      .get('supabase')
       .from('categories')
       .select(`
       id,

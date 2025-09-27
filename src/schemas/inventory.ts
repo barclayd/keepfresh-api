@@ -68,10 +68,10 @@ export const InventoryItemsSchema = z.array(
     createdAt: timestampzTransformer,
     openedAt: timestampzTransformer.nullable(),
     status: z.enum(status),
-    storageLocation: storageLocationFieldMapper.inputSchema,
+    storageLocation: storageLocationFieldMapper.outputSchema,
     consumptionPrediction: z.number(),
     expiryDate: timestampzTransformer,
-    expiryType: expiryTypeFieldMapper.inputSchema,
+    expiryType: expiryTypeFieldMapper.outputSchema,
     product: z.object({
       id: z.number(),
       name: z.string(),

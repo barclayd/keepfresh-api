@@ -17,14 +17,14 @@ import {
   StorageLocationDb,
 } from '@/types/category';
 import type { Database } from '@/types/database';
+import { storageLocationFieldMapper } from '@/utils/field-mapper';
 
-export const storageLocationDbToStorageLocationCodec = z.codec(
+export const storageLocationDbCodec = z.codec(
   z.enum(StorageLocationDb),
   z.enum(StorageLocation),
   {
-    decode: (storageLocation) => storageLocationMap[storageLocation],
-    encode: (storageLocation) =>
-      storageLocationDbToStorageLocationMap[storageLocation],
+    decode: (dbValue) => storageLocationMap[dbValue],
+    encode: (uiValue) => storageLocationDbToStorageLocationMap[uiValue],
   },
 );
 
@@ -58,6 +58,16 @@ export const InventoryItemInput = z.object({
   }),
 });
 
+export const UpdateInventoryItemInput = z
+  .object({
+    status: z.enum(InventoryItemStatus).optional(),
+    storageLocation: storageLocationFieldMapper.inputSchema.optional(),
+  })
+  .refine(
+    (data) => data.status !== undefined || data.storageLocation !== undefined,
+    { message: 'Either status or storageLocation must be provided' },
+  );
+
 export const StorageLocationSchema = z.enum(StorageLocation);
 
 const status: Array<
@@ -88,7 +98,7 @@ export const InventoryItemsSchema = z.array(
     createdAt: timestampzTransformer,
     openedAt: timestampzTransformer.nullable(),
     status: z.enum(status),
-    storageLocation: storageLocationDbToStorageLocationCodec,
+    storageLocation: storageLocationDbCodec,
     consumptionPrediction: z.number(),
     expiryDate: timestampzTransformer,
     expiryType: expiryTypeDbToExpiryTypeCodec,

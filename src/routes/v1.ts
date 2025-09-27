@@ -10,7 +10,7 @@ import {
   expiryTypeDbToExpiryTypeCodec,
   InventoryItemSuggestions,
   InventoryItemsSchema,
-  storageLocationDbToStorageLocationCodec,
+  storageLocationDbCodec,
 } from '@/schemas/inventory';
 import type { Database } from '@/types/database';
 import type { HonoEnvironment } from '@/types/hono';
@@ -19,12 +19,8 @@ export const createV1Routes = () => {
   const app = new OpenAPIHono<HonoEnvironment>();
 
   app.openapi(routes.inventory.get, async (c) => {
-    const supabase = createClient<Database>(
-      env.SUPABASE_URL,
-      env.SUPABASE_SERVICE_ROLE,
-    );
-
-    const { data, error } = await supabase
+    const { data, error } = await c
+      .get('supabase')
       .from('inventory_items')
       .select(`
     id,
@@ -81,18 +77,14 @@ export const createV1Routes = () => {
   });
 
   app.openapi(routes.inventory.add, async (c) => {
-    const supabase = createClient<Database>(
-      env.SUPABASE_URL,
-      env.SUPABASE_SERVICE_ROLE,
-    );
-
     const inventoryItemInput = c.req.valid('json');
 
     // add userId to context - need to explore how I can manage sessions. Better auth?
 
     // authenticate user in middleware, retrieve userId from context
 
-    const productUpsertResponse = await supabase
+    const productUpsertResponse = await c
+      .get('supabase')
       .from('products')
       .upsert(
         {
@@ -100,7 +92,7 @@ export const createV1Routes = () => {
           expiry_type: expiryTypeDbToExpiryTypeCodec.encode(
             inventoryItemInput.product.expiryType,
           ),
-          storage_location: storageLocationDbToStorageLocationCodec.encode(
+          storage_location: storageLocationDbCodec.encode(
             inventoryItemInput.product.storageLocation,
           ),
           source_ref: inventoryItemInput.product.sourceRef,
@@ -124,7 +116,8 @@ export const createV1Routes = () => {
 
     const { id: productId } = productUpsertResponse.data;
 
-    const inventoryItemsResponse = await supabase
+    const inventoryItemsResponse = await c
+      .get('supabase')
       .from('inventory_items')
       .insert({
         ...objectToSnake(inventoryItemInput.item),
@@ -158,6 +151,42 @@ export const createV1Routes = () => {
     );
   });
 
+  app.openapi(routes.inventory.update, async (c) => {
+    const { inventoryItemId } = c.req.valid('param');
+
+    const { status, storageLocation } = c.req.valid('json');
+
+    const { error } = await c
+      .get('supabase')
+      .from('inventory_items')
+      .update({
+        ...(storageLocation
+          ? {
+              storage_location: 'freezer',
+              location_changed_at: new Date().toISOString(),
+            }
+          : {}),
+        ...(status
+          ? {
+              status,
+              opened_at: status === 'opened' ? new Date().toISOString() : null,
+            }
+          : {}),
+      })
+      .eq('id', inventoryItemId);
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error occurred updating inventory item. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.body(null, 204);
+  });
+
   app.openapi(routes.products.list, async (c) => {
     const supabase = createClient<Database>(
       env.SUPABASE_URL,
@@ -177,14 +206,10 @@ export const createV1Routes = () => {
   });
 
   app.openapi(routes.categories.inventorySuggestions, async (c) => {
-    const supabase = createClient<Database>(
-      env.SUPABASE_URL,
-      env.SUPABASE_SERVICE_ROLE,
-    );
-
     const { categoryId } = c.req.valid('param');
 
-    const { data, error } = await supabase
+    const { data, error } = await c
+      .get('supabase')
       .from('categories')
       .select(`
       id,
@@ -223,10 +248,9 @@ export const createV1Routes = () => {
         },
       },
       expiryType: expiryTypeDbToExpiryTypeCodec.decode(data.expiry_type),
-      recommendedStorageLocation:
-        storageLocationDbToStorageLocationCodec.decode(
-          data.recommended_storage_location,
-        ),
+      recommendedStorageLocation: storageLocationDbCodec.decode(
+        data.recommended_storage_location,
+      ),
     };
 
     const inventoryItemSuggestions = InventoryItemSuggestions.parse(

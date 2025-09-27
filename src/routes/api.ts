@@ -1,10 +1,12 @@
 import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
+import { supabaseMiddleware } from '@/middleware/db';
 import {
   InventoryGETSchemaResponse,
   InventoryItemAddResponse,
   InventoryItemInput,
   InventoryItemSuggestions,
+  UpdateInventoryItemInput,
 } from '@/schemas/inventory';
 import { ProductSearchItemsSchema } from '@/schemas/product';
 
@@ -62,7 +64,7 @@ export const routes = {
     get: createRoute({
       method: 'get',
       path: '/inventory',
-      middleware: [],
+      middleware: [supabaseMiddleware],
       responses: {
         200: {
           content: {
@@ -107,7 +109,7 @@ export const routes = {
           },
         },
       },
-      middleware: [],
+      middleware: [supabaseMiddleware],
       responses: {
         200: {
           content: {
@@ -140,12 +142,55 @@ export const routes = {
         },
       ],
     }),
+    update: createRoute({
+      method: 'patch',
+      path: '/inventory/items/{inventoryItemId}',
+      request: {
+        params: z.object({
+          inventoryItemId: z.coerce.number(),
+        }),
+        body: {
+          content: {
+            'application/json': {
+              schema: UpdateInventoryItemInput,
+            },
+          },
+        },
+      },
+      middleware: [supabaseMiddleware],
+      responses: {
+        204: {
+          description: 'Successfully updated inventory item',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+        401: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['401'],
+            },
+          },
+          description: 'Authorization error response from Grocery Item API',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
   },
   products: {
     list: createRoute({
       method: 'get',
       path: '/products',
-      middleware: [],
+      middleware: [supabaseMiddleware],
       request: {
         query: z.object({
           search: z.string(),
@@ -179,7 +224,7 @@ export const routes = {
           categoryId: z.string(),
         }),
       },
-      middleware: [],
+      middleware: [supabaseMiddleware],
       responses: {
         200: {
           content: {

@@ -147,7 +147,7 @@ export const routes = {
       path: '/inventory/items/{inventoryItemId}',
       request: {
         params: z.object({
-          inventoryItemId: z.string(),
+          inventoryItemId: z.coerce.number(),
         }),
         body: {
           content: {

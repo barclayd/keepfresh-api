@@ -10,7 +10,7 @@ import {
   expiryTypeDbToExpiryTypeCodec,
   InventoryItemSuggestions,
   InventoryItemsSchema,
-  storageLocationDbToStorageLocationCodec,
+  storageLocationDbCodec,
 } from '@/schemas/inventory';
 import type { Database } from '@/types/database';
 import type { HonoEnvironment } from '@/types/hono';
@@ -92,7 +92,7 @@ export const createV1Routes = () => {
           expiry_type: expiryTypeDbToExpiryTypeCodec.encode(
             inventoryItemInput.product.expiryType,
           ),
-          storage_location: storageLocationDbToStorageLocationCodec.encode(
+          storage_location: storageLocationDbCodec.encode(
             inventoryItemInput.product.storageLocation,
           ),
           source_ref: inventoryItemInput.product.sourceRef,
@@ -154,14 +154,34 @@ export const createV1Routes = () => {
   app.openapi(routes.inventory.update, async (c) => {
     const { inventoryItemId } = c.req.valid('param');
 
-    const update = c.req.valid('json');
+    const { status, storageLocation } = c.req.valid('json');
 
-    if (update.status) {
-      // send status event
-    }
+    const { error } = await c
+      .get('supabase')
+      .from('inventory_items')
+      .update({
+        ...(storageLocation
+          ? {
+              storage_location: 'freezer',
+              location_changed_at: new Date().toISOString(),
+            }
+          : {}),
+        ...(status
+          ? {
+              status,
+              opened_at: status === 'opened' ? new Date().toISOString() : null,
+            }
+          : {}),
+      })
+      .eq('id', inventoryItemId);
 
-    if (update.storageLocation) {
-      // send storage update event
+    if (error) {
+      return c.json(
+        {
+          error: `Error occurred updating inventory item. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
     }
 
     return c.body(null, 204);
@@ -228,10 +248,9 @@ export const createV1Routes = () => {
         },
       },
       expiryType: expiryTypeDbToExpiryTypeCodec.decode(data.expiry_type),
-      recommendedStorageLocation:
-        storageLocationDbToStorageLocationCodec.decode(
-          data.recommended_storage_location,
-        ),
+      recommendedStorageLocation: storageLocationDbCodec.decode(
+        data.recommended_storage_location,
+      ),
     };
 
     const inventoryItemSuggestions = InventoryItemSuggestions.parse(

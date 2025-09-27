@@ -4,13 +4,11 @@ import { createClient } from '@supabase/supabase-js';
 import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { search } from '@/clients/open-food-facts';
 import { env } from '@/config/env';
-import { storageLocationDbToStorageLocationMap } from '@/helpers/storage-location';
 import { routes } from '@/routes/api';
 import {
   expiryTypeDbToExpiryTypeCodec,
   InventoryItemSuggestions,
   InventoryItemsSchema,
-  storageLocationDbCodec,
 } from '@/schemas/inventory';
 import type { Database } from '@/types/database';
 import type { HonoEnvironment } from '@/types/hono';
@@ -92,9 +90,6 @@ export const createV1Routes = () => {
           expiry_type: expiryTypeDbToExpiryTypeCodec.encode(
             inventoryItemInput.product.expiryType,
           ),
-          storage_location: storageLocationDbCodec.encode(
-            inventoryItemInput.product.storageLocation,
-          ),
           source_ref: inventoryItemInput.product.sourceRef,
           source_id: inventoryItemInput.product.sourceId,
         },
@@ -121,10 +116,6 @@ export const createV1Routes = () => {
       .from('inventory_items')
       .insert({
         ...objectToSnake(inventoryItemInput.item),
-        storage_location:
-          storageLocationDbToStorageLocationMap[
-            inventoryItemInput.item.storageLocation
-          ],
         expiry_type: expiryTypeDbToExpiryTypeCodec.encode(
           inventoryItemInput.product.expiryType,
         ),
@@ -248,9 +239,7 @@ export const createV1Routes = () => {
         },
       },
       expiryType: expiryTypeDbToExpiryTypeCodec.decode(data.expiry_type),
-      recommendedStorageLocation: storageLocationDbCodec.decode(
-        data.recommended_storage_location,
-      ),
+      recommendedStorageLocation: data.recommended_storage_location,
     };
 
     const inventoryItemSuggestions = InventoryItemSuggestions.parse(

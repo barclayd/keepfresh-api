@@ -4,29 +4,15 @@ import {
   expiryTypeToExpiryTypeDbMap,
 } from '@/helpers/expiry';
 import { Units } from '@/helpers/product';
-import {
-  storageLocationDbToStorageLocationMap,
-  storageLocationMap,
-} from '@/helpers/storage-location';
 import { ExpiryTypeSchema } from '@/schemas/product';
 import {
   ExpiryType,
   ExpiryTypeDb,
   InventoryItemStatus,
   StorageLocation,
-  StorageLocationDb,
 } from '@/types/category';
 import type { Database } from '@/types/database';
 import { storageLocationFieldMapper } from '@/utils/field-mapper';
-
-export const storageLocationDbCodec = z.codec(
-  z.enum(StorageLocationDb),
-  z.enum(StorageLocation),
-  {
-    decode: (dbValue) => storageLocationMap[dbValue],
-    encode: (uiValue) => storageLocationDbToStorageLocationMap[uiValue],
-  },
-);
 
 export const expiryTypeDbToExpiryTypeCodec = z.codec(
   z.enum(ExpiryTypeDb),
@@ -40,7 +26,7 @@ export const expiryTypeDbToExpiryTypeCodec = z.codec(
 export const InventoryItemInput = z.object({
   item: z.object({
     expiryDate: z.iso.datetime().optional(),
-    storageLocation: z.enum(StorageLocation),
+    storageLocation: storageLocationFieldMapper.inputSchema,
     status: z.enum(InventoryItemStatus),
     expiryType: z.enum(ExpiryType),
   }),
@@ -48,7 +34,7 @@ export const InventoryItemInput = z.object({
     name: z.string(),
     brand: z.string(),
     expiryType: z.enum(ExpiryType),
-    storageLocation: z.enum(StorageLocation),
+    storageLocation: storageLocationFieldMapper.inputSchema,
     barcode: z.string().optional(),
     unit: z.enum(Units).optional(),
     amount: z.float32().optional(),
@@ -98,7 +84,7 @@ export const InventoryItemsSchema = z.array(
     createdAt: timestampzTransformer,
     openedAt: timestampzTransformer.nullable(),
     status: z.enum(status),
-    storageLocation: storageLocationDbCodec,
+    storageLocation: storageLocationFieldMapper.inputSchema,
     consumptionPrediction: z.number(),
     expiryDate: timestampzTransformer,
     expiryType: expiryTypeDbToExpiryTypeCodec,
@@ -133,7 +119,7 @@ export const InventoryItemSuggestions = z.object({
     }),
   }),
   expiryType: ExpiryTypeSchema,
-  recommendedStorageLocation: StorageLocationSchema,
+  recommendedStorageLocation: storageLocationFieldMapper.outputSchema,
 });
 
 export type InventoryItemInput = z.infer<typeof InventoryItemInput>;

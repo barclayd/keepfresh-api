@@ -66,6 +66,7 @@ export const InventoryItemsSchema = z.array(
   z.object({
     id: z.number(),
     createdAt: timestampzTransformer,
+    updatedAt: timestampzTransformer,
     openedAt: timestampzTransformer.nullable(),
     status: z.enum(status),
     storageLocation: storageLocationFieldMapper.outputSchema,

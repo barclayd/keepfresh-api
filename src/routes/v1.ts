@@ -22,6 +22,7 @@ export const createV1Routes = () => {
       .select(`
     id,
     created_at,
+    updated_at,
     opened_at,
     status,
     storage_location,

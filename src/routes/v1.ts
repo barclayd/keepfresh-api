@@ -165,6 +165,7 @@ export const createV1Routes = () => {
         }),
         ...(status === 'consumed' && {
           consumed_at: new Date().toISOString(),
+          percentage_remaining_when_discarded: percentageRemaining,
         }),
       })
       .eq('id', inventoryItemId);

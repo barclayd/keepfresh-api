@@ -159,13 +159,13 @@ export const createV1Routes = () => {
         ...(status === 'discarded' && {
           discarded_at: new Date().toISOString(),
           ...(percentageRemaining !== undefined && {
-            percentage_remaining_when_discarded: percentageRemaining,
+            percentage_remaining: percentageRemaining,
             discarded_at: new Date().toISOString(),
           }),
         }),
         ...(status === 'consumed' && {
           consumed_at: new Date().toISOString(),
-          percentage_remaining_when_discarded: percentageRemaining,
+          percentage_remaining: percentageRemaining,
         }),
       })
       .eq('id', inventoryItemId);

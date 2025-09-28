@@ -35,7 +35,7 @@ export const createV1Routes = () => {
       name,
       brand,
       image_url,
-      categories (
+      category:categories (
         name,
         image_url,
         icon,

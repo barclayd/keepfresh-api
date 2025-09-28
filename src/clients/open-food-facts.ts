@@ -75,6 +75,10 @@ export const search = async (
         return;
       }
 
+      if (!product.brands) {
+        return;
+      }
+
       return {
         name: productName,
         brand: toTitleCase(product.brands),

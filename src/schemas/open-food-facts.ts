@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 const OpenFoodFactsProduct = z.object({
-  brands: z.string(),
+  brands: z.string().optional(),
   categoriesTagsEn: z.array(z.string()).optional(),
   code: z.string(),
   productName: z.string().optional(),

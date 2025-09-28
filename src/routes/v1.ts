@@ -9,6 +9,7 @@ import {
   InventoryItemSuggestions,
   InventoryItemsSchema,
 } from '@/schemas/inventory';
+import { ActiveInventoryItemStatus } from '@/types/category';
 import type { Database } from '@/types/database';
 import type { HonoEnvironment } from '@/types/hono';
 
@@ -44,7 +45,8 @@ export const createV1Routes = () => {
       unit
     )
   `)
-      .eq('user_id', '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2');
+      .eq('user_id', '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2')
+      .in('status', ActiveInventoryItemStatus);
 
     if (error) {
       return c.json(

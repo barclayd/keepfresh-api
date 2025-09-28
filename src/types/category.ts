@@ -19,6 +19,9 @@ export const ExpiryTypeDb: Array<ExpiryTypeDb> = [
 export type StorageLocation = 'Fridge' | 'Freezer' | 'Pantry';
 export type StorageLocationDb = Database['public']['Enums']['storage_location'];
 
+export type InventoryItemStatus =
+  Database['public']['Enums']['grocery_item_status'];
+
 export const StorageLocation: Array<StorageLocation> = [
   'Fridge',
   'Freezer',
@@ -31,9 +34,13 @@ export const StorageLocationDb: Array<StorageLocationDb> = [
   'pantry',
 ];
 
-export type InventoryItemStatus = 'opened' | 'unopened';
-
 export const InventoryItemStatus: Array<InventoryItemStatus> = [
   'opened',
   'unopened',
+  'consumed',
+  'discarded',
 ] as const;
+
+export const ActiveInventoryItemStatus: Array<
+  Exclude<InventoryItemStatus, 'consumed' | 'discarded'>
+> = ['unopened', 'opened'];

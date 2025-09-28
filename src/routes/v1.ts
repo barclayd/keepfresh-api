@@ -141,27 +141,33 @@ export const createV1Routes = () => {
   app.openapi(routes.inventory.update, async (c) => {
     const { inventoryItemId } = c.req.valid('param');
 
-    const { status, storageLocation } = c.req.valid('json');
+    const { status, storageLocation, percentageRemaining } =
+      c.req.valid('json');
 
     const { error } = await c
       .get('supabase')
       .from('inventory_items')
       .update({
-        ...(storageLocation
-          ? {
-              storage_location: 'freezer',
-              location_changed_at: new Date().toISOString(),
-            }
-          : {}),
-        ...(status
-          ? {
-              status,
-              opened_at: status === 'opened' ? new Date().toISOString() : null,
-            }
-          : {}),
+        ...(storageLocation && {
+          storage_location: storageLocation,
+          location_changed_at: new Date().toISOString(),
+        }),
+        ...(status && { status }),
+        ...(status === 'opened' && {
+          opened_at: new Date().toISOString(),
+        }),
+        ...(status === 'discarded' && {
+          discarded_at: new Date().toISOString(),
+          ...(percentageRemaining !== undefined && {
+            percentage_remaining_when_discarded: percentageRemaining,
+            discarded_at: new Date().toISOString(),
+          }),
+        }),
+        ...(status === 'consumed' && {
+          consumed_at: new Date().toISOString(),
+        }),
       })
       .eq('id', inventoryItemId);
-
     // send async event to Cloudflare Queue
 
     if (error) {

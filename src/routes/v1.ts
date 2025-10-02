@@ -1,16 +1,13 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
-import { createClient } from '@supabase/supabase-js';
 import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { search } from '@/clients/open-food-facts';
-import { env } from '@/config/env';
 import { routes } from '@/routes/api';
 import {
   InventoryItemSuggestions,
   InventoryItemsSchema,
 } from '@/schemas/inventory';
 import { ActiveInventoryItemStatus } from '@/types/category';
-import type { Database } from '@/types/database';
 import type { HonoEnvironment } from '@/types/hono';
 
 export const createV1Routes = () => {
@@ -184,18 +181,51 @@ export const createV1Routes = () => {
   });
 
   app.openapi(routes.products.list, async (c) => {
-    const supabase = createClient<Database>(
-      env.SUPABASE_URL,
-      env.SUPABASE_SERVICE_ROLE,
-    );
-
     const { search: searchTerm } = c.req.valid('query');
 
-    const products = await search(searchTerm, supabase);
+    const products = await search(searchTerm, c.get('supabase'));
 
     return c.json(
       {
         products,
+      },
+      200,
+    );
+  });
+
+  app.openapi(routes.products.resolve, async (c) => {
+    const { product } = c.req.valid('json');
+
+    const productUpsertResponse = await c
+      .get('supabase')
+      .from('products')
+      .upsert(
+        {
+          ...objectToSnake(product),
+          source_ref: product.sourceRef,
+          source_id: product.sourceId,
+        },
+        {
+          onConflict: 'source_id,source_ref',
+        },
+      )
+      .select('id')
+      .single();
+
+    if (productUpsertResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred upserting product. Error=${JSON.stringify(productUpsertResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const { id: productId } = productUpsertResponse.data;
+
+    return c.json(
+      {
+        productId,
       },
       200,
     );

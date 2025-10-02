@@ -6,6 +6,7 @@ import {
   InventoryItemAddResponse,
   InventoryItemInput,
   InventoryItemSuggestions,
+  ProductInput,
   UpdateInventoryItemInput,
 } from '@/schemas/inventory';
 import { ProductSearchItemsSchema } from '@/schemas/product';
@@ -185,6 +186,7 @@ export const routes = {
         },
       ],
     }),
+    // /inventory/preview -> wrapper
   },
   products: {
     list: createRoute({
@@ -214,6 +216,48 @@ export const routes = {
         },
       ],
     }),
+    resolve: createRoute({
+      method: 'post',
+      path: '/products/resolve',
+      middleware: [supabaseMiddleware],
+      request: {
+        body: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                product: ProductInput,
+              }),
+            },
+          },
+        },
+      },
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                productId: z.number(),
+              }),
+            },
+          },
+          description: 'Success response from InventoryItemInput Gen API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    // /products/{id}/prediction-context
   },
   categories: {
     inventorySuggestions: createRoute({

@@ -34,7 +34,7 @@ export const UpdateInventoryItemInput = z
   .object({
     status: z.enum(InventoryItemStatus).optional(),
     storageLocation: storageLocationFieldMapper.inputSchema.optional(),
-    percentageRemaining: z.int().optional().default(0),
+    percentageRemaining: z.int().optional(),
   })
   .refine(
     (data) => data.status !== undefined || data.storageLocation !== undefined,

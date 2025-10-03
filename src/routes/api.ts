@@ -262,8 +262,8 @@ export const routes = {
       path: '/products/{id}/prediction-context',
       middleware: [supabaseMiddleware],
       request: {
-        query: z.object({
-          id: z.string(),
+        params: z.object({
+          id: z.coerce.number(),
         }),
       },
       responses: {

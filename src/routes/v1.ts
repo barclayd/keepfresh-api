@@ -9,6 +9,11 @@ import {
 } from '@/schemas/inventory';
 import { ActiveInventoryItemStatus } from '@/types/category';
 import type { HonoEnvironment } from '@/types/hono';
+import {
+  calculateMean,
+  calculateStandardDeviation,
+  toTwoDecimalPlaces,
+} from '@/utils/maths';
 
 export const createV1Routes = () => {
   const app = new OpenAPIHono<HonoEnvironment>();
@@ -232,11 +237,114 @@ export const createV1Routes = () => {
   });
 
   app.openapi(routes.products.predictionContext, async (c) => {
-    const { id: productId } = c.req.valid('query');
+    const { id: productId } = c.req.valid('param');
+
+    const supabase = c.get('supabase');
+
+    const userId = '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2';
+
+    const productResponse = await supabase
+      .from('products')
+      .select('category_id')
+      .eq('id', productId)
+      .single();
+
+    if (productResponse.error || !productResponse.data) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product. Error=${JSON.stringify(productResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const { category_id: categoryId } = productResponse.data;
+
+    const productHistoryResponse = await supabase
+      .from('inventory_items')
+      .select('percentage_remaining')
+      .eq('product_id', productId)
+      .in('status', ['consumed', 'discarded']);
+
+    if (productHistoryResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product history. Error=${JSON.stringify(productHistoryResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const productUsagePercentages = productHistoryResponse.data.map(
+      (item) => 100 - item.percentage_remaining,
+    );
+
+    const categoryHistoryResponse = await supabase
+      .from('inventory_items')
+      .select('percentage_remaining, product:products!inner(category_id)')
+      .eq('product.category_id', categoryId)
+      .in('status', ['consumed', 'discarded']);
+
+    if (categoryHistoryResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving category history. Error=${JSON.stringify(categoryHistoryResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const categoryUsagePercentages = categoryHistoryResponse.data.map(
+      (item) => 100 - item.percentage_remaining,
+    );
+
+    const userBaselineResponse = await supabase
+      .from('inventory_items')
+      .select('percentage_remaining')
+      .eq('user_id', userId)
+      .in('status', ['consumed', 'discarded']);
+
+    if (userBaselineResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving user baseline. Error=${JSON.stringify(userBaselineResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const userUsagePercentages = userBaselineResponse.data.map(
+      (item) => 100 - item.percentage_remaining,
+    );
 
     return c.json(
       {
-        productId,
+        productHistory: {
+          purchaseCount: productUsagePercentages.length,
+          usagePercentages: productUsagePercentages.map(
+            (usagePercentage) => Math.round(usagePercentage * 100) / 100,
+          ),
+          averageUsage: toTwoDecimalPlaces(
+            calculateMean(productUsagePercentages),
+          ),
+          standardDeviation: toTwoDecimalPlaces(
+            calculateStandardDeviation(productUsagePercentages),
+          ),
+        },
+        categoryHistory: {
+          purchaseCount: categoryUsagePercentages.length,
+          averageUsage: toTwoDecimalPlaces(
+            calculateMean(categoryUsagePercentages),
+          ),
+          standardDeviation: toTwoDecimalPlaces(
+            calculateStandardDeviation(categoryUsagePercentages),
+          ),
+        },
+        userBaseline: {
+          averageUsage:
+            Math.round(calculateMean(userUsagePercentages) * 100) / 100,
+          totalItemsCount: userUsagePercentages.length,
+        },
       },
       200,
     );

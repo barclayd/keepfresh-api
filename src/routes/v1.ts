@@ -231,6 +231,17 @@ export const createV1Routes = () => {
     );
   });
 
+  app.openapi(routes.products.predictionContext, async (c) => {
+    const { id: productId } = c.req.valid('query');
+
+    return c.json(
+      {
+        productId,
+      },
+      200,
+    );
+  });
+
   app.openapi(routes.categories.inventorySuggestions, async (c) => {
     const { categoryId } = c.req.valid('param');
 

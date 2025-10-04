@@ -26,6 +26,7 @@ export const InventoryItemInput = z.object({
     storageLocation: storageLocationFieldMapper.inputSchema,
     status: z.enum(InventoryItemStatus),
     expiryType: expiryTypeFieldMapper.inputSchema,
+    consumptionPrediction: z.int().optional(),
   }),
   product: ProductInput,
 });

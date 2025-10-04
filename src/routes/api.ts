@@ -221,16 +221,25 @@ export const routes = {
                     purchaseCount: z.number(),
                     usagePercentages: z.array(z.number()),
                     averageUsage: z.number(),
+                    medianUsage: z.number().optional(),
                     standardDeviation: z.number(),
+                    averageDaysToConsumeOrDiscarded: z.number(),
+                    medianDaysToConsumeOrDiscarded: z.number().optional(),
                   }),
                   categoryHistory: z.object({
                     purchaseCount: z.number(),
                     averageUsage: z.number(),
+                    medianUsage: z.number().optional(),
                     standardDeviation: z.number(),
+                    averageDaysToConsumeOrDiscarded: z.number(),
+                    medianDaysToConsumeOrDiscarded: z.number().optional(),
                   }),
                   userBaseline: z.object({
                     averageUsage: z.number(),
+                    medianUsage: z.number().optional(),
                     totalItemsCount: z.number(),
+                    averageDaysToConsumeOrDiscarded: z.number(),
+                    medianDaysToConsumeOrDiscarded: z.number().optional(),
                   }),
                 }),
                 suggestions: InventoryItemSuggestions,
@@ -316,98 +325,6 @@ export const routes = {
             },
           },
           description: 'Error occurred when processing payload',
-        },
-      },
-      security: [
-        {
-          Bearer: [],
-        },
-      ],
-    }),
-    predictionContext: createRoute({
-      method: 'get',
-      path: '/products/{id}/prediction-context',
-      middleware: [supabaseMiddleware],
-      request: {
-        params: z.object({
-          id: z.coerce.number(),
-        }),
-      },
-      responses: {
-        200: {
-          content: {
-            'application/json': {
-              schema: z.object({
-                productHistory: z.object({
-                  purchaseCount: z.number(),
-                  usagePercentages: z.array(z.number()),
-                  averageUsage: z.number(),
-                  standardDeviation: z.number(),
-                }),
-                categoryHistory: z.object({
-                  purchaseCount: z.number(),
-                  averageUsage: z.number(),
-                  standardDeviation: z.number(),
-                }),
-                userBaseline: z.object({
-                  averageUsage: z.number(),
-                  totalItemsCount: z.number(),
-                }),
-              }),
-            },
-          },
-          description: 'Success response from InventoryItemInput Gen API',
-        },
-        400: {
-          content: {
-            'application/json': {
-              schema: InventoryItemAddResponse['400'],
-            },
-          },
-          description: 'Error occurred when processing payload',
-        },
-      },
-      security: [
-        {
-          Bearer: [],
-        },
-      ],
-    }),
-  },
-  categories: {
-    inventorySuggestions: createRoute({
-      method: 'get',
-      path: '/categories/{categoryId}/inventory-suggestions',
-      request: {
-        params: z.object({
-          categoryId: z.string(),
-        }),
-      },
-      middleware: [supabaseMiddleware],
-      responses: {
-        200: {
-          content: {
-            'application/json': {
-              schema: InventorySuggestionsSchemaResponse['200'],
-            },
-          },
-          description: 'Success response from InventoryItemInput Gen API',
-        },
-        400: {
-          content: {
-            'application/json': {
-              schema: InventorySuggestionsSchemaResponse['400'],
-            },
-          },
-          description: 'Error occurred when processing payload',
-        },
-        401: {
-          content: {
-            'application/json': {
-              schema: InventorySuggestionsSchemaResponse['401'],
-            },
-          },
-          description: 'Authorization error response from Grocery Item API',
         },
       },
       security: [

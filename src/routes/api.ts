@@ -6,6 +6,7 @@ import {
   InventoryItemAddResponse,
   InventoryItemInput,
   InventoryItemSuggestions,
+  ProductInput,
   UpdateInventoryItemInput,
 } from '@/schemas/inventory';
 import { ProductSearchItemsSchema } from '@/schemas/product';
@@ -185,6 +186,61 @@ export const routes = {
         },
       ],
     }),
+    preview: createRoute({
+      method: 'post',
+      path: '/inventory/preview',
+      request: {
+        body: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                product: ProductInput,
+              }),
+            },
+          },
+        },
+      },
+      middleware: [supabaseMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                productHistory: z.object({
+                  purchaseCount: z.number(),
+                  usagePercentages: z.array(z.number()),
+                  averageUsage: z.number(),
+                  standardDeviation: z.number(),
+                }),
+                categoryHistory: z.object({
+                  purchaseCount: z.number(),
+                  averageUsage: z.number(),
+                  standardDeviation: z.number(),
+                }),
+                userBaseline: z.object({
+                  averageUsage: z.number(),
+                  totalItemsCount: z.number(),
+                }),
+              }),
+            },
+          },
+          description: 'Success response from InventoryItemInput Gen API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
   },
   products: {
     list: createRoute({
@@ -206,6 +262,96 @@ export const routes = {
             },
           },
           description: 'Success response from InventoryItemInput Gen API',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    resolve: createRoute({
+      method: 'post',
+      path: '/products/resolve',
+      middleware: [supabaseMiddleware],
+      request: {
+        body: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                product: ProductInput,
+              }),
+            },
+          },
+        },
+      },
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                productId: z.number(),
+              }),
+            },
+          },
+          description: 'Success response from InventoryItemInput Gen API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    predictionContext: createRoute({
+      method: 'get',
+      path: '/products/{id}/prediction-context',
+      middleware: [supabaseMiddleware],
+      request: {
+        params: z.object({
+          id: z.coerce.number(),
+        }),
+      },
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                productHistory: z.object({
+                  purchaseCount: z.number(),
+                  usagePercentages: z.array(z.number()),
+                  averageUsage: z.number(),
+                  standardDeviation: z.number(),
+                }),
+                categoryHistory: z.object({
+                  purchaseCount: z.number(),
+                  averageUsage: z.number(),
+                  standardDeviation: z.number(),
+                }),
+                userBaseline: z.object({
+                  averageUsage: z.number(),
+                  totalItemsCount: z.number(),
+                }),
+              }),
+            },
+          },
+          description: 'Success response from InventoryItemInput Gen API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
         },
       },
       security: [

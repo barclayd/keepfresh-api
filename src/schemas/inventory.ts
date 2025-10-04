@@ -1,11 +1,24 @@
 import { z } from '@hono/zod-openapi';
 import { Units } from '@/helpers/product';
-import { InventoryItemStatus, StorageLocation } from '@/types/category';
+import { InventoryItemStatus } from '@/types/category';
 import type { Database } from '@/types/database';
 import {
   expiryTypeFieldMapper,
   storageLocationFieldMapper,
 } from '@/utils/field-mapper';
+
+export const ProductInput = z.object({
+  name: z.string(),
+  brand: z.string(),
+  expiryType: expiryTypeFieldMapper.inputSchema,
+  storageLocation: storageLocationFieldMapper.inputSchema,
+  barcode: z.string().optional(),
+  unit: z.enum(Units).optional(),
+  amount: z.float32().optional(),
+  categoryId: z.int(),
+  sourceId: z.int(),
+  sourceRef: z.string(),
+});
 
 export const InventoryItemInput = z.object({
   item: z.object({
@@ -14,32 +27,19 @@ export const InventoryItemInput = z.object({
     status: z.enum(InventoryItemStatus),
     expiryType: expiryTypeFieldMapper.inputSchema,
   }),
-  product: z.object({
-    name: z.string(),
-    brand: z.string(),
-    expiryType: expiryTypeFieldMapper.inputSchema,
-    storageLocation: storageLocationFieldMapper.inputSchema,
-    barcode: z.string().optional(),
-    unit: z.enum(Units).optional(),
-    amount: z.float32().optional(),
-    categoryId: z.int(),
-    sourceId: z.int(),
-    sourceRef: z.string(),
-  }),
+  product: ProductInput,
 });
 
 export const UpdateInventoryItemInput = z
   .object({
     status: z.enum(InventoryItemStatus).optional(),
     storageLocation: storageLocationFieldMapper.inputSchema.optional(),
-    percentageRemaining: z.int().optional().default(0),
+    percentageRemaining: z.int().optional(),
   })
   .refine(
     (data) => data.status !== undefined || data.storageLocation !== undefined,
     { message: 'Either status or storageLocation must be provided' },
   );
-
-export const StorageLocationSchema = z.enum(StorageLocation);
 
 const status: Array<
   Database['public']['Tables']['inventory_items']['Row']['status']

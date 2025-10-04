@@ -170,6 +170,7 @@ export const routes = {
                 predictions: z.object({
                   productHistory: z.object({
                     purchaseCount: z.number(),
+                    consumedCount: z.number(),
                     usagePercentages: z.array(z.number()),
                     averageUsage: z.number(),
                     medianUsage: z.number().optional(),

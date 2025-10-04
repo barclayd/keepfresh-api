@@ -363,6 +363,7 @@ export const createV1Routes = () => {
 
     return c.json(
       {
+        productId,
         predictions: {
           productHistory: {
             purchaseCount,

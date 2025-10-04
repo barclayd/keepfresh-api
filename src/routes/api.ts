@@ -167,6 +167,7 @@ export const routes = {
           content: {
             'application/json': {
               schema: z.object({
+                productId: z.int(),
                 predictions: z.object({
                   productHistory: z.object({
                     purchaseCount: z.number(),

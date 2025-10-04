@@ -190,19 +190,43 @@ export const createV1Routes = () => {
 
     const supabase = c.get('supabase');
 
+    const { data: category, error } = await supabase
+      .from('categories')
+      .select(`
+      expiry_type,
+      recommended_storage_location,
+      shelf_life_in_pantry_in_days_unopened,
+      shelf_life_in_pantry_in_days_opened,
+      shelf_life_in_fridge_in_days_unopened,
+      shelf_life_in_fridge_in_days_opened,
+      shelf_life_in_freezer_in_days_unopened,
+      shelf_life_in_freezer_in_days_opened
+    `)
+      .eq('id', product.categoryId)
+      .single();
+
+    if (error || !category) {
+      return c.json(
+        {
+          error: `Error occurred retrieving food items. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
     const productUpsertResponse = await supabase
       .from('products')
       .upsert(
         {
           ...objectToSnake(product),
-          source_ref: product.sourceRef,
-          source_id: product.sourceId,
+          expiry_type: category.expiry_type,
+          storage_location: category.recommended_storage_location,
         },
         {
           onConflict: 'source_id,source_ref',
         },
       )
-      .select('id, category_id')
+      .select('id')
       .single();
 
     if (productUpsertResponse.error) {
@@ -214,8 +238,7 @@ export const createV1Routes = () => {
       );
     }
 
-    const { id: productId, category_id: categoryId } =
-      productUpsertResponse.data;
+    const { id: productId } = productUpsertResponse.data;
 
     const userId = '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2';
 
@@ -241,7 +264,7 @@ export const createV1Routes = () => {
     const categoryHistoryResponse = await supabase
       .from('inventory_items')
       .select('percentage_remaining, product:products!inner(category_id)')
-      .eq('product.category_id', categoryId)
+      .eq('product.category_id', product.categoryId)
       .in('status', ['consumed', 'discarded']);
 
     if (categoryHistoryResponse.error) {
@@ -276,34 +299,58 @@ export const createV1Routes = () => {
       (item) => 100 - item.percentage_remaining,
     );
 
+    const inventoryItemSuggestion = {
+      shelfLifeInDays: {
+        opened: {
+          pantry: category.shelf_life_in_pantry_in_days_opened,
+          fridge: category.shelf_life_in_fridge_in_days_opened,
+          freezer: category.shelf_life_in_freezer_in_days_opened,
+        },
+        unopened: {
+          pantry: category.shelf_life_in_pantry_in_days_unopened,
+          fridge: category.shelf_life_in_fridge_in_days_unopened,
+          freezer: category.shelf_life_in_freezer_in_days_unopened,
+        },
+      },
+      expiryType: category.expiry_type,
+      recommendedStorageLocation: category.recommended_storage_location,
+    };
+
+    const inventoryItemSuggestions = InventoryItemSuggestions.parse(
+      inventoryItemSuggestion,
+    );
+
     return c.json(
       {
-        productHistory: {
-          purchaseCount: productUsagePercentages.length,
-          usagePercentages: productUsagePercentages.map(
-            (usagePercentage) => Math.round(usagePercentage * 100) / 100,
-          ),
-          averageUsage: toTwoDecimalPlaces(
-            calculateMean(productUsagePercentages),
-          ),
-          standardDeviation: toTwoDecimalPlaces(
-            calculateStandardDeviation(productUsagePercentages),
-          ),
+        predictions: {
+          productHistory: {
+            purchaseCount: productUsagePercentages.length,
+            usagePercentages: productUsagePercentages.map(
+              (usagePercentage) => Math.round(usagePercentage * 100) / 100,
+            ),
+            averageUsage: toTwoDecimalPlaces(
+              calculateMean(productUsagePercentages),
+            ),
+            standardDeviation: toTwoDecimalPlaces(
+              calculateStandardDeviation(productUsagePercentages),
+            ),
+          },
+          categoryHistory: {
+            purchaseCount: categoryUsagePercentages.length,
+            averageUsage: toTwoDecimalPlaces(
+              calculateMean(categoryUsagePercentages),
+            ),
+            standardDeviation: toTwoDecimalPlaces(
+              calculateStandardDeviation(categoryUsagePercentages),
+            ),
+          },
+          userBaseline: {
+            averageUsage:
+              Math.round(calculateMean(userUsagePercentages) * 100) / 100,
+            totalItemsCount: userUsagePercentages.length,
+          },
         },
-        categoryHistory: {
-          purchaseCount: categoryUsagePercentages.length,
-          averageUsage: toTwoDecimalPlaces(
-            calculateMean(categoryUsagePercentages),
-          ),
-          standardDeviation: toTwoDecimalPlaces(
-            calculateStandardDeviation(categoryUsagePercentages),
-          ),
-        },
-        userBaseline: {
-          averageUsage:
-            Math.round(calculateMean(userUsagePercentages) * 100) / 100,
-          totalItemsCount: userUsagePercentages.length,
-        },
+        suggestions: inventoryItemSuggestions,
       },
       200,
     );

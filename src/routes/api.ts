@@ -1,5 +1,6 @@
 import { createRoute } from '@hono/zod-openapi';
 import { z } from 'zod';
+import { Units } from '@/helpers/product';
 import { supabaseMiddleware } from '@/middleware/db';
 import {
   InventoryGETSchemaResponse,
@@ -194,7 +195,16 @@ export const routes = {
           content: {
             'application/json': {
               schema: z.object({
-                product: ProductInput,
+                product: z.object({
+                  name: z.string(),
+                  brand: z.string(),
+                  barcode: z.string().optional(),
+                  unit: z.enum(Units).optional(),
+                  amount: z.float32().optional(),
+                  sourceId: z.int(),
+                  categoryId: z.coerce.number(),
+                  sourceRef: z.string(),
+                }),
               }),
             },
           },
@@ -206,21 +216,24 @@ export const routes = {
           content: {
             'application/json': {
               schema: z.object({
-                productHistory: z.object({
-                  purchaseCount: z.number(),
-                  usagePercentages: z.array(z.number()),
-                  averageUsage: z.number(),
-                  standardDeviation: z.number(),
+                predictions: z.object({
+                  productHistory: z.object({
+                    purchaseCount: z.number(),
+                    usagePercentages: z.array(z.number()),
+                    averageUsage: z.number(),
+                    standardDeviation: z.number(),
+                  }),
+                  categoryHistory: z.object({
+                    purchaseCount: z.number(),
+                    averageUsage: z.number(),
+                    standardDeviation: z.number(),
+                  }),
+                  userBaseline: z.object({
+                    averageUsage: z.number(),
+                    totalItemsCount: z.number(),
+                  }),
                 }),
-                categoryHistory: z.object({
-                  purchaseCount: z.number(),
-                  averageUsage: z.number(),
-                  standardDeviation: z.number(),
-                }),
-                userBaseline: z.object({
-                  averageUsage: z.number(),
-                  totalItemsCount: z.number(),
-                }),
+                suggestions: InventoryItemSuggestions,
               }),
             },
           },

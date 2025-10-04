@@ -246,9 +246,10 @@ export const createV1Routes = () => {
 
     const productHistoryResponse = await supabase
       .from('inventory_items')
-      .select('percentage_remaining, created_at, consumed_at, discarded_at')
-      .eq('product_id', productId)
-      .in('status', ['consumed', 'discarded']);
+      .select(
+        'percentage_remaining, created_at, consumed_at, discarded_at, status',
+      )
+      .eq('product_id', productId);
 
     if (productHistoryResponse.error) {
       return c.json(
@@ -259,11 +260,20 @@ export const createV1Routes = () => {
       );
     }
 
-    const productUsagePercentages = productHistoryResponse.data.map(
+    const purchaseCount = productHistoryResponse.data.length;
+    const consumedCount = productHistoryResponse.data.filter(
+      (item) => item.status === 'consumed',
+    ).length;
+
+    const consumedOrDiscardedItems = productHistoryResponse.data.filter(
+      (item) => item.status === 'consumed' || item.status === 'discarded',
+    );
+
+    const productUsagePercentages = consumedOrDiscardedItems.map(
       (item) => 100 - item.percentage_remaining,
     );
 
-    const productDaysToConsumeOrDiscard = productHistoryResponse.data
+    const productDaysToConsumeOrDiscard = consumedOrDiscardedItems
       .map((item) =>
         calculateDaysBetween(
           item.created_at,
@@ -355,7 +365,8 @@ export const createV1Routes = () => {
       {
         predictions: {
           productHistory: {
-            purchaseCount: productUsagePercentages.length,
+            purchaseCount,
+            consumedCount,
             usagePercentages: productUsagePercentages.map(
               (usagePercentage) => Math.round(usagePercentage * 100) / 100,
             ),

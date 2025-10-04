@@ -185,6 +185,130 @@ export const createV1Routes = () => {
     return c.body(null, 204);
   });
 
+  app.openapi(routes.inventory.preview, async (c) => {
+    const { product } = c.req.valid('json');
+
+    const supabase = c.get('supabase');
+
+    const productUpsertResponse = await supabase
+      .from('products')
+      .upsert(
+        {
+          ...objectToSnake(product),
+          source_ref: product.sourceRef,
+          source_id: product.sourceId,
+        },
+        {
+          onConflict: 'source_id,source_ref',
+        },
+      )
+      .select('id, category_id')
+      .single();
+
+    if (productUpsertResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred upserting product. Error=${JSON.stringify(productUpsertResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const { id: productId, category_id: categoryId } =
+      productUpsertResponse.data;
+
+    const userId = '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2';
+
+    const productHistoryResponse = await supabase
+      .from('inventory_items')
+      .select('percentage_remaining')
+      .eq('product_id', productId)
+      .in('status', ['consumed', 'discarded']);
+
+    if (productHistoryResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product history. Error=${JSON.stringify(productHistoryResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const productUsagePercentages = productHistoryResponse.data.map(
+      (item) => 100 - item.percentage_remaining,
+    );
+
+    const categoryHistoryResponse = await supabase
+      .from('inventory_items')
+      .select('percentage_remaining, product:products!inner(category_id)')
+      .eq('product.category_id', categoryId)
+      .in('status', ['consumed', 'discarded']);
+
+    if (categoryHistoryResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving category history. Error=${JSON.stringify(categoryHistoryResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const categoryUsagePercentages = categoryHistoryResponse.data.map(
+      (item) => 100 - item.percentage_remaining,
+    );
+
+    const userBaselineResponse = await supabase
+      .from('inventory_items')
+      .select('percentage_remaining')
+      .eq('user_id', userId)
+      .in('status', ['consumed', 'discarded']);
+
+    if (userBaselineResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving user baseline. Error=${JSON.stringify(userBaselineResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const userUsagePercentages = userBaselineResponse.data.map(
+      (item) => 100 - item.percentage_remaining,
+    );
+
+    return c.json(
+      {
+        productHistory: {
+          purchaseCount: productUsagePercentages.length,
+          usagePercentages: productUsagePercentages.map(
+            (usagePercentage) => Math.round(usagePercentage * 100) / 100,
+          ),
+          averageUsage: toTwoDecimalPlaces(
+            calculateMean(productUsagePercentages),
+          ),
+          standardDeviation: toTwoDecimalPlaces(
+            calculateStandardDeviation(productUsagePercentages),
+          ),
+        },
+        categoryHistory: {
+          purchaseCount: categoryUsagePercentages.length,
+          averageUsage: toTwoDecimalPlaces(
+            calculateMean(categoryUsagePercentages),
+          ),
+          standardDeviation: toTwoDecimalPlaces(
+            calculateStandardDeviation(categoryUsagePercentages),
+          ),
+        },
+        userBaseline: {
+          averageUsage:
+            Math.round(calculateMean(userUsagePercentages) * 100) / 100,
+          totalItemsCount: userUsagePercentages.length,
+        },
+      },
+      200,
+    );
+  });
+
   app.openapi(routes.products.list, async (c) => {
     const { search: searchTerm } = c.req.valid('query');
 

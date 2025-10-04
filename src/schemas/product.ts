@@ -1,4 +1,5 @@
 import { z } from '@hono/zod-openapi';
+import { storageLocationFieldMapper } from '@/utils/field-mapper';
 
 export const ProductSearchItemSchema = z.object({
   name: z.string(),
@@ -7,6 +8,7 @@ export const ProductSearchItemSchema = z.object({
     id: z.int(),
     name: z.string(),
     path: z.string(),
+    recommendedStorageLocation: storageLocationFieldMapper.outputSchema,
   }),
   amount: z.number().optional(),
   unit: z.string().optional(),

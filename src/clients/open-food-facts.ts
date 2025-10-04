@@ -7,15 +7,7 @@ import { toTitleCase } from '@/helpers/toTitleCase';
 import { OpenFoodFactsSearchSchema } from '@/schemas/open-food-facts';
 import type { ProductSearchItem } from '@/schemas/product';
 import type { Database } from '@/types/database';
-
-type Category = {
-  id: number;
-  path: string;
-  path_display: string;
-  name: string;
-  icon?: string;
-  image_url?: string;
-};
+import { storageLocationFieldMapper } from '@/utils/field-mapper';
 
 const getCategory = async (
   categoryTags: Array<string> | undefined,
@@ -33,7 +25,7 @@ const getCategory = async (
     return;
   }
 
-  return (data as Category) ?? undefined;
+  return data;
 };
 
 export const search = async (
@@ -72,6 +64,7 @@ export const search = async (
         'https://keep-fresh-images.s3.eu-west-2.amazonaws.com/milk.png';
 
       if (!category) {
+        console.log('No category found:', productName);
         return;
       }
 
@@ -86,6 +79,9 @@ export const search = async (
           id: category.id,
           name: category.name,
           path: getCategoryPath(category.path_display),
+          recommendedStorageLocation: storageLocationFieldMapper.toUI(
+            category.recommended_storage_location,
+          ),
         },
         imageURL: category?.image_url ?? fallbackImageURL,
         icon: category?.icon ?? '🍗',

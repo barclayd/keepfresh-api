@@ -9,8 +9,10 @@ import {
 } from '@/schemas/inventory';
 import { ActiveInventoryItemStatus } from '@/types/category';
 import type { HonoEnvironment } from '@/types/hono';
+import { calculateDaysBetween } from '@/utils/date';
 import {
   calculateMean,
+  calculateMedian,
   calculateStandardDeviation,
   toTwoDecimalPlaces,
 } from '@/utils/maths';
@@ -244,7 +246,7 @@ export const createV1Routes = () => {
 
     const productHistoryResponse = await supabase
       .from('inventory_items')
-      .select('percentage_remaining')
+      .select('percentage_remaining, created_at, consumed_at, discarded_at')
       .eq('product_id', productId)
       .in('status', ['consumed', 'discarded']);
 
@@ -261,9 +263,20 @@ export const createV1Routes = () => {
       (item) => 100 - item.percentage_remaining,
     );
 
+    const productDaysToConsumeOrDiscard = productHistoryResponse.data
+      .map((item) =>
+        calculateDaysBetween(
+          item.created_at,
+          item.consumed_at || item.discarded_at,
+        ),
+      )
+      .filter((days): days is number => days !== null);
+
     const categoryHistoryResponse = await supabase
       .from('inventory_items')
-      .select('percentage_remaining, product:products!inner(category_id)')
+      .select(
+        'percentage_remaining, created_at, consumed_at, discarded_at, product:products!inner(category_id)',
+      )
       .eq('product.category_id', product.categoryId)
       .in('status', ['consumed', 'discarded']);
 
@@ -280,9 +293,18 @@ export const createV1Routes = () => {
       (item) => 100 - item.percentage_remaining,
     );
 
+    const categoryDaysToConsumeOrDiscard = categoryHistoryResponse.data
+      .map((item) =>
+        calculateDaysBetween(
+          item.created_at,
+          item.consumed_at || item.discarded_at,
+        ),
+      )
+      .filter((days): days is number => days !== null);
+
     const userBaselineResponse = await supabase
       .from('inventory_items')
-      .select('percentage_remaining')
+      .select('percentage_remaining, created_at, consumed_at, discarded_at')
       .eq('user_id', userId)
       .in('status', ['consumed', 'discarded']);
 
@@ -298,6 +320,15 @@ export const createV1Routes = () => {
     const userUsagePercentages = userBaselineResponse.data.map(
       (item) => 100 - item.percentage_remaining,
     );
+
+    const userDaysToConsumeOrDiscard = userBaselineResponse.data
+      .map((item) =>
+        calculateDaysBetween(
+          item.created_at,
+          item.consumed_at || item.discarded_at,
+        ),
+      )
+      .filter((days): days is number => days !== null);
 
     const inventoryItemSuggestion = {
       shelfLifeInDays: {
@@ -331,8 +362,15 @@ export const createV1Routes = () => {
             averageUsage: toTwoDecimalPlaces(
               calculateMean(productUsagePercentages),
             ),
+            medianUsage: calculateMedian(productUsagePercentages),
             standardDeviation: toTwoDecimalPlaces(
               calculateStandardDeviation(productUsagePercentages),
+            ),
+            averageDaysToConsumeOrDiscarded: toTwoDecimalPlaces(
+              calculateMean(productDaysToConsumeOrDiscard),
+            ),
+            medianDaysToConsumeOrDiscarded: calculateMedian(
+              productDaysToConsumeOrDiscard,
             ),
           },
           categoryHistory: {
@@ -340,14 +378,28 @@ export const createV1Routes = () => {
             averageUsage: toTwoDecimalPlaces(
               calculateMean(categoryUsagePercentages),
             ),
+            medianUsage: calculateMedian(categoryUsagePercentages),
             standardDeviation: toTwoDecimalPlaces(
               calculateStandardDeviation(categoryUsagePercentages),
+            ),
+            averageDaysToConsumeOrDiscarded: toTwoDecimalPlaces(
+              calculateMean(categoryDaysToConsumeOrDiscard),
+            ),
+            medianDaysToConsumeOrDiscarded: calculateMedian(
+              categoryDaysToConsumeOrDiscard,
             ),
           },
           userBaseline: {
             averageUsage:
               Math.round(calculateMean(userUsagePercentages) * 100) / 100,
+            medianUsage: calculateMedian(userUsagePercentages),
             totalItemsCount: userUsagePercentages.length,
+            averageDaysToConsumeOrDiscarded: toTwoDecimalPlaces(
+              calculateMean(userDaysToConsumeOrDiscard),
+            ),
+            medianDaysToConsumeOrDiscarded: calculateMedian(
+              userDaysToConsumeOrDiscard,
+            ),
           },
         },
         suggestions: inventoryItemSuggestions,
@@ -405,173 +457,6 @@ export const createV1Routes = () => {
       },
       200,
     );
-  });
-
-  app.openapi(routes.products.predictionContext, async (c) => {
-    const { id: productId } = c.req.valid('param');
-
-    const supabase = c.get('supabase');
-
-    const userId = '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2';
-
-    const productResponse = await supabase
-      .from('products')
-      .select('category_id')
-      .eq('id', productId)
-      .single();
-
-    if (productResponse.error || !productResponse.data) {
-      return c.json(
-        {
-          error: `Error occurred retrieving product. Error=${JSON.stringify(productResponse.error)}`,
-        },
-        400,
-      );
-    }
-
-    const { category_id: categoryId } = productResponse.data;
-
-    const productHistoryResponse = await supabase
-      .from('inventory_items')
-      .select('percentage_remaining')
-      .eq('product_id', productId)
-      .in('status', ['consumed', 'discarded']);
-
-    if (productHistoryResponse.error) {
-      return c.json(
-        {
-          error: `Error occurred retrieving product history. Error=${JSON.stringify(productHistoryResponse.error)}`,
-        },
-        400,
-      );
-    }
-
-    const productUsagePercentages = productHistoryResponse.data.map(
-      (item) => 100 - item.percentage_remaining,
-    );
-
-    const categoryHistoryResponse = await supabase
-      .from('inventory_items')
-      .select('percentage_remaining, product:products!inner(category_id)')
-      .eq('product.category_id', categoryId)
-      .in('status', ['consumed', 'discarded']);
-
-    if (categoryHistoryResponse.error) {
-      return c.json(
-        {
-          error: `Error occurred retrieving category history. Error=${JSON.stringify(categoryHistoryResponse.error)}`,
-        },
-        400,
-      );
-    }
-
-    const categoryUsagePercentages = categoryHistoryResponse.data.map(
-      (item) => 100 - item.percentage_remaining,
-    );
-
-    const userBaselineResponse = await supabase
-      .from('inventory_items')
-      .select('percentage_remaining')
-      .eq('user_id', userId)
-      .in('status', ['consumed', 'discarded']);
-
-    if (userBaselineResponse.error) {
-      return c.json(
-        {
-          error: `Error occurred retrieving user baseline. Error=${JSON.stringify(userBaselineResponse.error)}`,
-        },
-        400,
-      );
-    }
-
-    const userUsagePercentages = userBaselineResponse.data.map(
-      (item) => 100 - item.percentage_remaining,
-    );
-
-    return c.json(
-      {
-        productHistory: {
-          purchaseCount: productUsagePercentages.length,
-          usagePercentages: productUsagePercentages.map(
-            (usagePercentage) => Math.round(usagePercentage * 100) / 100,
-          ),
-          averageUsage: toTwoDecimalPlaces(
-            calculateMean(productUsagePercentages),
-          ),
-          standardDeviation: toTwoDecimalPlaces(
-            calculateStandardDeviation(productUsagePercentages),
-          ),
-        },
-        categoryHistory: {
-          purchaseCount: categoryUsagePercentages.length,
-          averageUsage: toTwoDecimalPlaces(
-            calculateMean(categoryUsagePercentages),
-          ),
-          standardDeviation: toTwoDecimalPlaces(
-            calculateStandardDeviation(categoryUsagePercentages),
-          ),
-        },
-        userBaseline: {
-          averageUsage:
-            Math.round(calculateMean(userUsagePercentages) * 100) / 100,
-          totalItemsCount: userUsagePercentages.length,
-        },
-      },
-      200,
-    );
-  });
-
-  app.openapi(routes.categories.inventorySuggestions, async (c) => {
-    const { categoryId } = c.req.valid('param');
-
-    const { data, error } = await c
-      .get('supabase')
-      .from('categories')
-      .select(`
-      id,
-      expiry_type,
-      recommended_storage_location,
-      shelf_life_in_pantry_in_days_unopened,
-      shelf_life_in_pantry_in_days_opened,
-      shelf_life_in_fridge_in_days_unopened,
-      shelf_life_in_fridge_in_days_opened,
-      shelf_life_in_freezer_in_days_unopened,
-      shelf_life_in_freezer_in_days_opened
-    `)
-      .eq('id', parseInt(categoryId, 10))
-      .single();
-
-    if (error || !data) {
-      return c.json(
-        {
-          error: `Error occurred retrieving food items. Error=${JSON.stringify(error)}`,
-        },
-        400,
-      );
-    }
-
-    const inventoryItemSuggestion = {
-      shelfLifeInDays: {
-        opened: {
-          pantry: data.shelf_life_in_pantry_in_days_opened,
-          fridge: data.shelf_life_in_fridge_in_days_opened,
-          freezer: data.shelf_life_in_freezer_in_days_opened,
-        },
-        unopened: {
-          pantry: data.shelf_life_in_pantry_in_days_unopened,
-          fridge: data.shelf_life_in_fridge_in_days_unopened,
-          freezer: data.shelf_life_in_freezer_in_days_unopened,
-        },
-      },
-      expiryType: data.expiry_type,
-      recommendedStorageLocation: data.recommended_storage_location,
-    };
-
-    const inventoryItemSuggestions = InventoryItemSuggestions.parse(
-      inventoryItemSuggestion,
-    );
-
-    return c.json(inventoryItemSuggestions, 200);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

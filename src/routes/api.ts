@@ -12,55 +12,6 @@ import {
 } from '@/schemas/inventory';
 import { ProductSearchItemsSchema } from '@/schemas/product';
 
-export const InventorySuggestionsSchemaResponse = {
-  200: InventoryItemSuggestions,
-  400: z.object({
-    error: z.string().openapi({
-      example: 'Invalid grocery item name',
-      description: 'Error message describing what went wrong',
-    }),
-    details: z
-      .array(
-        z.object({
-          field: z.string().openapi({ example: 'name' }),
-          message: z.string().openapi({ example: 'Invalid grocery item name' }),
-        }),
-      )
-      .optional()
-      .openapi({
-        description: 'Detailed validation errors for each field',
-      }),
-  }),
-  401: z.object({
-    error: z.string().openapi({
-      example: 'Invalid API key',
-      description: 'Authentication error message describing what went wrong',
-    }),
-    details: z
-      .array(
-        z.object({
-          header: z.string().openapi({ example: 'Authorization' }),
-          message: z
-            .string()
-            .openapi({ example: 'Missing Bearer from Authorization header' }),
-        }),
-      )
-      .optional()
-      .openapi({
-        description: 'Detailed validation errors for each field',
-      }),
-  }),
-  500: z.object({
-    success: z.boolean().openapi({
-      example: false,
-    }),
-    error: z.string().openapi({
-      example: 'Internal server error',
-      description: 'Generic error message for server issues',
-    }),
-  }),
-};
-
 export const routes = {
   inventory: {
     get: createRoute({

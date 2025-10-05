@@ -10,7 +10,10 @@ import {
   ProductInput,
   UpdateInventoryItemInput,
 } from '@/schemas/inventory';
-import { ProductSearchItemsSchema } from '@/schemas/product';
+import {
+  ProductSearchItemSchema,
+  ProductSearchItemsSchema,
+} from '@/schemas/product';
 
 export const routes = {
   inventory: {
@@ -237,6 +240,36 @@ export const routes = {
             },
           },
           description: 'Success response from InventoryItemInput Gen API',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    random: createRoute({
+      method: 'get',
+      path: '/products/random',
+      middleware: [supabaseMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                product: ProductSearchItemSchema,
+              }),
+            },
+          },
+          description: 'Success response from product/random endpoint',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
         },
       },
       security: [

@@ -36,6 +36,7 @@ export const UpdateInventoryItemInput = z
     status: z.enum(InventoryItemStatus).optional(),
     storageLocation: storageLocationFieldMapper.inputSchema.optional(),
     percentageRemaining: z.int().optional(),
+    consumptionPrediction: z.int().optional(),
   })
   .refine(
     (data) => data.status !== undefined || data.storageLocation !== undefined,
@@ -73,6 +74,7 @@ export const InventoryItemsSchema = z.array(
     status: z.enum(status),
     storageLocation: storageLocationFieldMapper.outputSchema,
     consumptionPrediction: z.number(),
+    consumptionPredictionChangedAt: timestampzTransformer.nullable(),
     expiryDate: timestampzTransformer,
     expiryType: expiryTypeFieldMapper.outputSchema,
     product: z.object({

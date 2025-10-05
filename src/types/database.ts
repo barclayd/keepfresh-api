@@ -170,6 +170,7 @@ export type Database = {
         Row: {
           consumed_at: string | null;
           consumption_prediction: number | null;
+          consumption_prediction_changed_at: string | null;
           created_at: string;
           discarded_at: string | null;
           expiry_date: string | null;
@@ -188,6 +189,7 @@ export type Database = {
         Insert: {
           consumed_at?: string | null;
           consumption_prediction?: number | null;
+          consumption_prediction_changed_at?: string | null;
           created_at?: string;
           discarded_at?: string | null;
           expiry_date?: string | null;
@@ -206,6 +208,7 @@ export type Database = {
         Update: {
           consumed_at?: string | null;
           consumption_prediction?: number | null;
+          consumption_prediction_changed_at?: string | null;
           created_at?: string;
           discarded_at?: string | null;
           expiry_date?: string | null;

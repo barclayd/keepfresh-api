@@ -34,6 +34,7 @@ export const createV1Routes = () => {
     status,
     storage_location,
     consumption_prediction,
+    consumption_prediction_changed_at,
     expiry_date,
     expiry_type,
     product:products (
@@ -123,6 +124,9 @@ export const createV1Routes = () => {
         ...objectToSnake(inventoryItemInput.item),
         product_id: productId,
         user_id: '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2',
+        ...(inventoryItemInput.item.consumptionPrediction && {
+          consumption_prediction_changed_at: new Date().toISOString(),
+        }),
       })
       .select('id')
       .single();
@@ -147,8 +151,12 @@ export const createV1Routes = () => {
   app.openapi(routes.inventory.update, async (c) => {
     const { inventoryItemId } = c.req.valid('param');
 
-    const { status, storageLocation, percentageRemaining } =
-      c.req.valid('json');
+    const {
+      status,
+      storageLocation,
+      percentageRemaining,
+      consumptionPrediction,
+    } = c.req.valid('json');
 
     const { error } = await c
       .get('supabase')
@@ -161,6 +169,10 @@ export const createV1Routes = () => {
         ...(status && { status }),
         ...(status === 'opened' && {
           opened_at: new Date().toISOString(),
+        }),
+        ...(consumptionPrediction && {
+          consumption_prediction: consumptionPrediction,
+          consumption_prediction_changed_at: new Date().toISOString(),
         }),
         ...(status === 'discarded' && {
           discarded_at: new Date().toISOString(),

@@ -2,11 +2,13 @@ import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
 import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { search } from '@/clients/open-food-facts';
+import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/api';
 import {
   InventoryItemSuggestions,
   InventoryItemsSchema,
 } from '@/schemas/inventory';
+import { ProductSearchItemSchema } from '@/schemas/product';
 import { ActiveInventoryItemStatus } from '@/types/category';
 import type { HonoEnvironment } from '@/types/hono';
 import { calculateDaysBetween } from '@/utils/date';
@@ -428,6 +430,71 @@ export const createV1Routes = () => {
     return c.json(
       {
         products,
+      },
+      200,
+    );
+  });
+
+  app.openapi(routes.products.random, async (c) => {
+    const productIds = [6, 11, 12, 18, 20, 23, 54, 112];
+
+    const randomProductId =
+      productIds[Math.floor(Math.random() * productIds.length)] ?? 11;
+
+    const { data, error } = await c
+      .get('supabase')
+      .from('products')
+      .select(
+        `
+      id,
+      name,
+      brand,
+      image_url,
+      amount,
+      unit,
+      source_id,
+      source_ref,
+      category:categories (
+        id,
+        name,
+        image_url,
+        icon,
+        path_display,
+        recommended_storage_location
+      )
+    `,
+      )
+      .eq('id', randomProductId)
+      .single();
+
+    if (error || !data) {
+      return c.json(
+        {
+          error: `Error occurred retrieving random product. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const parsedData = objectToCamel(data);
+
+    const productSearchItem = ProductSearchItemSchema.parse({
+      ...parsedData,
+      category: {
+        ...parsedData.category,
+        path: getCategoryPath(parsedData.category.pathDisplay),
+      },
+      source: {
+        id: data.source_id,
+        ref: data.source_ref,
+      },
+      unit: parsedData.unit ?? undefined,
+      amount: parsedData.amount ?? undefined,
+    });
+
+    return c.json(
+      {
+        product: productSearchItem,
       },
       200,
     );

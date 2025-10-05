@@ -488,6 +488,10 @@ export const createV1Routes = () => {
         id: data.source_id,
         ref: data.source_ref,
       },
+      imageURL:
+        parsedData.imageUrl ??
+        parsedData.category.imageUrl ??
+        'https://keep-fresh-images.s3.eu-west-2.amazonaws.com/milk.png',
       unit: parsedData.unit ?? undefined,
       amount: parsedData.amount ?? undefined,
     });

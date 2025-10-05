@@ -381,6 +381,7 @@ export type Database = {
           name: string;
           path: unknown;
           path_display: string;
+          recommended_storage_location: Database['public']['Enums']['storage_location'];
         }[];
       };
     };

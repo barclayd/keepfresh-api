@@ -5,7 +5,8 @@ RETURNS TABLE (
     path ltree,
     image_url varchar,
     icon varchar,
-    path_display varchar
+    path_display varchar,
+    recommended_storage_location storage_location
 )
 LANGUAGE plpgsql
 AS $$
@@ -41,6 +42,7 @@ SELECT
     c.image_url,
     c.icon,
     c.path_display,
+    c.recommended_storage_location,
     (
         SELECT COUNT(*)::float
         FROM unnest(search_words) w
@@ -56,7 +58,7 @@ WHERE EXISTS (
     SELECT 1 FROM unnest(search_words) w
     WHERE lower(c.path::text) LIKE '%' || w || '%'
 )
-GROUP BY c.id, c.name, c.path, c.image_url, c.icon, c.path_display
+GROUP BY c.id, c.name, c.path, c.image_url, c.icon, c.path_display, c.recommended_storage_location
 ORDER BY
     word_match_score DESC,
     pref_score ASC,
@@ -71,7 +73,8 @@ SELECT
     best_match.path,
     best_match.image_url,
     best_match.icon,
-    best_match.path_display;
+    best_match.path_display,
+    best_match.recommended_storage_location;
 RETURN;
 END IF;
 
@@ -83,6 +86,7 @@ SELECT
     c.image_url,
     c.icon,
     c.path_display,
+    c.recommended_storage_location,
     similarity(lower(c.path::text), clean_term) as sim_score,
     COALESCE(MIN(p.preference_score), 5) as pref_score
 INTO best_match
@@ -91,7 +95,7 @@ FROM categories c
                    ON context_terms LIKE p.context_pattern
                        AND lower(c.path::text) LIKE lower(p.path_pattern)
 WHERE similarity(lower(c.path::text), clean_term) > 0.3
-GROUP BY c.id, c.name, c.path, c.image_url, c.icon, c.path_display
+GROUP BY c.id, c.name, c.path, c.image_url, c.icon, c.path_display, c.recommended_storage_location
 ORDER BY
     sim_score DESC,
     pref_score ASC,
@@ -106,7 +110,8 @@ SELECT
     best_match.path,
     best_match.image_url,
     best_match.icon,
-    best_match.path_display;
+    best_match.path_display,
+    best_match.recommended_storage_location;
 RETURN;
 END IF;
 END LOOP;

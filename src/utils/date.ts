@@ -1,14 +1,13 @@
 export const calculateDaysBetween = (
-  startDate: string,
+  startDate: string | null,
   endDate: string | null,
 ): number | null => {
-  if (!endDate) {
+  if (!startDate || !endDate) {
     return null;
   }
   const start = new Date(startDate);
   const end = new Date(endDate);
 
-  // Set both dates to midnight UTC to compare calendar days only
   start.setUTCHours(0, 0, 0, 0);
   end.setUTCHours(0, 0, 0, 0);
 

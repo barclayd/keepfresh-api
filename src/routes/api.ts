@@ -319,5 +319,72 @@ export const routes = {
         },
       ],
     }),
+    prediction: createRoute({
+      method: 'get',
+      path: '/products/{productId}/prediction',
+      request: {
+        params: z.object({
+          productId: z.coerce.number(),
+        }),
+      },
+      middleware: [supabaseMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                predictions: z.object({
+                  productOpenedHistory: z.object({
+                    medianUsagePercentage: z
+                      .number()
+                      .min(0)
+                      .max(100)
+                      .nullable(),
+                    medianDaysToOutcome: z.number().min(0).nullable(),
+                  }),
+                  categoryOpenedHistory: z.object({
+                    medianUsagePercentage: z
+                      .number()
+                      .min(0)
+                      .max(100)
+                      .nullable(),
+                    medianDaysToOutcome: z.number().min(0).nullable(),
+                  }),
+                  userOpenedBaseline: z.object({
+                    medianUsagePercentage: z
+                      .number()
+                      .min(0)
+                      .max(100)
+                      .nullable(),
+                    medianDaysToOutcome: z.number().min(0).nullable(),
+                  }),
+                }),
+                suggestions: z.object({
+                  opened: z.object({
+                    pantry: z.int().nullable(),
+                    fridge: z.int().nullable(),
+                    freezer: z.int().nullable(),
+                  }),
+                }),
+              }),
+            },
+          },
+          description: 'Success response from InventoryItemInput Gen API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
   },
 };

@@ -434,6 +434,163 @@ export const createV1Routes = () => {
     );
   });
 
+  app.openapi(routes.products.prediction, async (c) => {
+    const { productId } = c.req.valid('param');
+
+    const supabase = c.get('supabase');
+
+    const userId = '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2';
+
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select(
+        `
+      category_id,
+      category:categories (
+        shelf_life_in_pantry_in_days_opened,
+        shelf_life_in_fridge_in_days_opened,
+        shelf_life_in_freezer_in_days_opened
+      )
+    `,
+      )
+      .eq('id', productId)
+      .single();
+
+    if (productError || !product) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product. Error=${JSON.stringify(productError)}`,
+        },
+        400,
+      );
+    }
+
+    const productOpenedHistoryResponse = await supabase
+      .from('inventory_items')
+      .select(
+        'percentage_remaining, opened_at, consumed_at, discarded_at, status',
+      )
+      .eq('product_id', productId)
+      .not('opened_at', 'is', null)
+      .in('status', ['consumed', 'discarded']);
+
+    if (productOpenedHistoryResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product opened history. Error=${JSON.stringify(productOpenedHistoryResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const productOpenedUsagePercentages = productOpenedHistoryResponse.data.map(
+      (item) => 100 - item.percentage_remaining,
+    );
+
+    const productOpenedDaysToOutcome = productOpenedHistoryResponse.data
+      .map((item) =>
+        calculateDaysBetween(
+          item.opened_at,
+          item.consumed_at || item.discarded_at,
+        ),
+      )
+      .filter((days): days is number => days !== null);
+
+    const categoryOpenedHistoryResponse = await supabase
+      .from('inventory_items')
+      .select(
+        'percentage_remaining, opened_at, consumed_at, discarded_at, product:products!inner(category_id)',
+      )
+      .eq('product.category_id', product.category_id)
+      .not('opened_at', 'is', null)
+      .in('status', ['consumed', 'discarded']);
+
+    if (categoryOpenedHistoryResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving category opened history. Error=${JSON.stringify(categoryOpenedHistoryResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const categoryOpenedUsagePercentages =
+      categoryOpenedHistoryResponse.data.map(
+        (item) => 100 - item.percentage_remaining,
+      );
+
+    const categoryOpenedDaysToOutcome = categoryOpenedHistoryResponse.data
+      .map((item) =>
+        calculateDaysBetween(
+          item.opened_at,
+          item.consumed_at || item.discarded_at,
+        ),
+      )
+      .filter((days): days is number => days !== null);
+
+    const userOpenedBaselineResponse = await supabase
+      .from('inventory_items')
+      .select('percentage_remaining, opened_at, consumed_at, discarded_at')
+      .eq('user_id', userId)
+      .not('opened_at', 'is', null)
+      .in('status', ['consumed', 'discarded']);
+
+    if (userOpenedBaselineResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving user opened baseline. Error=${JSON.stringify(userOpenedBaselineResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const userOpenedUsagePercentages = userOpenedBaselineResponse.data.map(
+      (item) => 100 - item.percentage_remaining,
+    );
+
+    const userOpenedDaysToOutcome = userOpenedBaselineResponse.data
+      .map((item) =>
+        calculateDaysBetween(
+          item.opened_at,
+          item.consumed_at || item.discarded_at,
+        ),
+      )
+      .filter((days): days is number => days !== null);
+
+    return c.json(
+      {
+        predictions: {
+          productOpenedHistory: {
+            medianUsagePercentage:
+              calculateMedian(productOpenedUsagePercentages) ?? null,
+            medianDaysToOutcome:
+              calculateMedian(productOpenedDaysToOutcome) ?? null,
+          },
+          categoryOpenedHistory: {
+            medianUsagePercentage:
+              calculateMedian(categoryOpenedUsagePercentages) ?? null,
+            medianDaysToOutcome:
+              calculateMedian(categoryOpenedDaysToOutcome) ?? null,
+          },
+          userOpenedBaseline: {
+            medianUsagePercentage:
+              calculateMedian(userOpenedUsagePercentages) ?? null,
+            medianDaysToOutcome:
+              calculateMedian(userOpenedDaysToOutcome) ?? null,
+          },
+        },
+        suggestions: {
+          opened: {
+            pantry: product.category.shelf_life_in_pantry_in_days_opened,
+            fridge: product.category.shelf_life_in_fridge_in_days_opened,
+            freezer: product.category.shelf_life_in_freezer_in_days_opened,
+          },
+        },
+      },
+      200,
+    );
+  });
+
   app.openapi(routes.products.list, async (c) => {
     const { search: searchTerm } = c.req.valid('query');
 

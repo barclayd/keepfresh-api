@@ -2,7 +2,7 @@ import { z } from '@hono/zod-openapi';
 import { storageLocationFieldMapper } from '@/utils/field-mapper';
 
 export const ProductSearchItemSchema = z.object({
-  name: z.string(),
+  name: z.string().min(2),
   brand: z.string(),
   category: z.object({
     id: z.int(),

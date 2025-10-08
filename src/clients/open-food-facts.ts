@@ -122,6 +122,7 @@ export const getProductByBarcode = async (
   );
 
   const quantity = parseQuantity(product.quantity);
+
   const productName = toTitleCase(product.productName);
 
   const category = await getCategory(

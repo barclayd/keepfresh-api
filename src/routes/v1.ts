@@ -710,15 +710,22 @@ export const createV1Routes = () => {
     const product = await getProductByBarcode(barcode, c.get('supabase'));
 
     if (!product) {
+      c.header('Cache-Control', 'public, max-age=300');
+
       return c.json(
         {
           error: `Error occurred retrieving product with product=${product}`,
         },
         400,
+        {
+          'Cache-Control': 'public, max-age=300',
+        },
       );
     }
 
-    return c.json({ product }, 200);
+    return c.json({ product }, 200, {
+      'Cache-Control': 'public, max-age=2592000, immutable',
+    });
   });
 
   app.openapi(routes.images.genmoji.get, async (c) => {
@@ -740,7 +747,6 @@ export const createV1Routes = () => {
 
     return c.json(genmoji, 200, {
       'Cache-Control': 'public, max-age=31536000, immutable',
-      'CDN-Cache-Control': 'max-age=31536000',
     });
   });
 

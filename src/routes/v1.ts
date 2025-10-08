@@ -4,6 +4,7 @@ import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { search } from '@/clients/open-food-facts';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/api';
+import type { Genmoji } from '@/schemas/genmoji';
 import {
   InventoryItemSuggestions,
   InventoryItemsSchema,
@@ -714,40 +715,22 @@ export const createV1Routes = () => {
   app.openapi(routes.images.genmoji.get, async (c) => {
     const { name } = c.req.valid('param');
 
-    const { data, error } = await c
-      .get('supabase')
-      .from('genmojis')
-      .select(
-        'content_description, image_content, content_type, content_identifier',
-      )
-      .eq('name', name)
-      .single();
+    const genmoji = await c.env.keepfresh_genmoji.get<Genmoji>(
+      `genmoji:${name}`,
+      'json',
+    );
 
-    if (error) {
+    if (!genmoji) {
       return c.json(
         {
-          error: `Error retrieving genmoji for name=${name}. Error=${JSON.stringify(error)}`,
+          error: `Error occurred retrieving genmoji with name=${name}`,
         },
         400,
       );
     }
 
-    const etag = `"${data.content_identifier}"`;
-
-    const clientETag = c.req.header('If-None-Match');
-
-    if (clientETag === etag) {
-      return c.body(null, 304);
-    }
-
-    const base64 = Buffer.from(
-      data.image_content.replace(/^\\x/, ''),
-      'hex',
-    ).toString('base64');
-
-    return c.json(objectToCamel({ ...data, image_content: base64 }), 200, {
+    return c.json(genmoji, 200, {
       'Cache-Control': 'public, max-age=31536000, immutable',
-      ETag: `"${data.content_identifier}"`,
       'CDN-Cache-Control': 'max-age=31536000',
     });
   });
@@ -755,17 +738,9 @@ export const createV1Routes = () => {
   app.openapi(routes.images.genmoji.add, async (c) => {
     const genmoji = c.req.valid('json');
 
-    const buffer = Buffer.from(genmoji.imageContent, 'base64');
-    const hexString = `\\x${buffer.toString('hex')}`;
-
-    const data = {
-      ...genmoji,
-      imageContent: hexString,
-    };
-
     await c.env.keepfresh_genmoji.put(
       `genmoji:${genmoji.name}`,
-      JSON.stringify(data),
+      JSON.stringify(genmoji),
     );
 
     return c.body(null, 201);

@@ -2,6 +2,7 @@ import { createRoute } from '@hono/zod-openapi';
 import * as z from 'zod';
 import { Units } from '@/helpers/product';
 import { supabaseMiddleware } from '@/middleware/db';
+import { GenmojiSchema } from '@/schemas/genmoji';
 import {
   InventoryGETSchemaResponse,
   InventoryItemAddResponse,
@@ -402,12 +403,7 @@ export const routes = {
           200: {
             content: {
               'application/json': {
-                schema: z.object({
-                  contentIdentifier: z.string(),
-                  contentDescription: z.string(),
-                  imageContent: z.base64(),
-                  contentType: z.string(),
-                }),
+                schema: GenmojiSchema,
               },
             },
             description: 'Error occurred when creating genmojji',

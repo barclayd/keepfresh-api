@@ -42,10 +42,8 @@ export const createV1Routes = () => {
       id,
       name,
       brand,
-      image_url,
       category:categories (
         name,
-        image_url,
         icon,
         path_display
       ),
@@ -619,7 +617,6 @@ export const createV1Routes = () => {
       id,
       name,
       brand,
-      image_url,
       amount,
       unit,
       source_id,
@@ -627,7 +624,6 @@ export const createV1Routes = () => {
       category:categories (
         id,
         name,
-        image_url,
         icon,
         path_display,
         recommended_storage_location
@@ -658,10 +654,6 @@ export const createV1Routes = () => {
         id: data.source_id,
         ref: data.source_ref,
       },
-      imageURL:
-        parsedData.imageUrl ??
-        parsedData.category.imageUrl ??
-        'https://keep-fresh-images.s3.eu-west-2.amazonaws.com/milk.png',
       unit: parsedData.unit ?? undefined,
       amount: parsedData.amount ?? undefined,
     });

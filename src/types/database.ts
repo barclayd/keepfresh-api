@@ -20,7 +20,6 @@ export type Database = {
           expiry_type: Database['public']['Enums']['expiry_type'];
           icon: string | null;
           id: number;
-          image_url: string | null;
           name: string;
           path: unknown;
           path_display: string;
@@ -37,7 +36,6 @@ export type Database = {
           expiry_type?: Database['public']['Enums']['expiry_type'];
           icon?: string | null;
           id?: number;
-          image_url?: string | null;
           name: string;
           path: unknown;
           path_display: string;
@@ -54,7 +52,6 @@ export type Database = {
           expiry_type?: Database['public']['Enums']['expiry_type'];
           icon?: string | null;
           id?: number;
-          image_url?: string | null;
           name?: string;
           path?: unknown;
           path_display?: string;
@@ -89,36 +86,6 @@ export type Database = {
           id?: number;
           path_pattern?: string | null;
           preference_score?: number | null;
-        };
-        Relationships: [];
-      };
-      genmojis: {
-        Row: {
-          content_description: string;
-          content_identifier: string;
-          content_type: string;
-          created_at: string;
-          id: number;
-          image_content: string;
-          name: string;
-        };
-        Insert: {
-          content_description: string;
-          content_identifier: string;
-          content_type: string;
-          created_at?: string;
-          id?: number;
-          image_content: string;
-          name: string;
-        };
-        Update: {
-          content_description?: string;
-          content_identifier?: string;
-          content_type?: string;
-          created_at?: string;
-          id?: number;
-          image_content?: string;
-          name?: string;
         };
         Relationships: [];
       };
@@ -304,7 +271,6 @@ export type Database = {
           created_at: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id: number;
-          image_url: string | null;
           lifespan_in_days: number | null;
           name: string;
           source_id: number;
@@ -321,7 +287,6 @@ export type Database = {
           created_at?: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id?: number;
-          image_url?: string | null;
           lifespan_in_days?: number | null;
           name: string;
           source_id: number;
@@ -338,7 +303,6 @@ export type Database = {
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
           id?: number;
-          image_url?: string | null;
           lifespan_in_days?: number | null;
           name?: string;
           source_id?: number;
@@ -410,7 +374,6 @@ export type Database = {
         Returns: {
           icon: string;
           id: number;
-          image_url: string;
           name: string;
           path: unknown;
           path_display: string;

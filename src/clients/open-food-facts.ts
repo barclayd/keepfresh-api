@@ -59,10 +59,6 @@ export const search = async (
         supabase,
       );
 
-      // change fallback image to be brand image
-      const fallbackImageURL =
-        'https://keep-fresh-images.s3.eu-west-2.amazonaws.com/milk.png';
-
       if (!category) {
         console.log('No category found:', productName);
         return;
@@ -83,8 +79,7 @@ export const search = async (
             category.recommended_storage_location,
           ),
         },
-        imageURL: category?.image_url ?? fallbackImageURL,
-        icon: category?.icon ?? '🍗',
+        icon: category?.icon ?? 'chicken',
         ...(quantity && {
           amount: quantity.amount,
           unit: quantity.unit,

@@ -3,7 +3,6 @@ RETURNS TABLE (
     id bigint,
     name varchar,
     path ltree,
-    image_url varchar,
     icon varchar,
     path_display varchar,
     recommended_storage_location storage_location
@@ -39,7 +38,6 @@ SELECT
     c.id,
     c.name,
     c.path,
-    c.image_url,
     c.icon,
     c.path_display,
     c.recommended_storage_location,
@@ -58,7 +56,7 @@ WHERE EXISTS (
     SELECT 1 FROM unnest(search_words) w
     WHERE lower(c.path::text) LIKE '%' || w || '%'
 )
-GROUP BY c.id, c.name, c.path, c.image_url, c.icon, c.path_display, c.recommended_storage_location
+GROUP BY c.id, c.name, c.path, c.icon, c.path_display, c.recommended_storage_location
 ORDER BY
     word_match_score DESC,
     pref_score ASC,
@@ -71,7 +69,6 @@ SELECT
     best_match.id,
     best_match.name,
     best_match.path,
-    best_match.image_url,
     best_match.icon,
     best_match.path_display,
     best_match.recommended_storage_location;
@@ -83,7 +80,6 @@ SELECT
     c.id,
     c.name,
     c.path,
-    c.image_url,
     c.icon,
     c.path_display,
     c.recommended_storage_location,
@@ -95,7 +91,7 @@ FROM categories c
                    ON context_terms LIKE p.context_pattern
                        AND lower(c.path::text) LIKE lower(p.path_pattern)
 WHERE similarity(lower(c.path::text), clean_term) > 0.3
-GROUP BY c.id, c.name, c.path, c.image_url, c.icon, c.path_display, c.recommended_storage_location
+GROUP BY c.id, c.name, c.path, c.icon, c.path_display, c.recommended_storage_location
 ORDER BY
     sim_score DESC,
     pref_score ASC,
@@ -108,7 +104,6 @@ SELECT
     best_match.id,
     best_match.name,
     best_match.path,
-    best_match.image_url,
     best_match.icon,
     best_match.path_display,
     best_match.recommended_storage_location;

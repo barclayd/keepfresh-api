@@ -1,5 +1,5 @@
 import { createRoute } from '@hono/zod-openapi';
-import { z } from 'zod';
+import * as z from 'zod';
 import { Units } from '@/helpers/product';
 import { supabaseMiddleware } from '@/middleware/db';
 import {

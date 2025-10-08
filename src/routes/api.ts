@@ -389,6 +389,52 @@ export const routes = {
   },
   images: {
     genmoji: {
+      get: createRoute({
+        method: 'get',
+        path: '/images/genmoji/:name',
+        request: {
+          params: z.object({
+            name: z.string(),
+          }),
+        },
+        middleware: [supabaseMiddleware],
+        responses: {
+          200: {
+            content: {
+              'application/json': {
+                schema: z.object({
+                  contentIdentifier: z.string(),
+                  contentDescription: z.string(),
+                  imageContent: z.base64(),
+                  contentType: z.string(),
+                }),
+              },
+            },
+            description: 'Error occurred when creating genmojji',
+          },
+          400: {
+            content: {
+              'application/json': {
+                schema: InventoryItemAddResponse['400'],
+              },
+            },
+            description: 'Error occurred when creating genmojji',
+          },
+          401: {
+            content: {
+              'application/json': {
+                schema: InventoryItemAddResponse['401'],
+              },
+            },
+            description: 'Authorization error response from Grocery Item API',
+          },
+        },
+        security: [
+          {
+            Bearer: [],
+          },
+        ],
+      }),
       add: createRoute({
         method: 'post',
         path: '/images/genmoji',

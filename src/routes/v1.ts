@@ -711,6 +711,34 @@ export const createV1Routes = () => {
     );
   });
 
+  app.openapi(routes.images.genmoji.get, async (c) => {
+    const { name } = c.req.valid('param');
+
+    const { data, error } = await c
+      .get('supabase')
+      .from('genmojis')
+      .select(
+        'content_description, image_content, content_type, content_identifier',
+      )
+      .eq('name', name)
+      .single();
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error retrieving genmoji for name=${name}. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(objectToCamel(data), 200, {
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      ETag: `"${data.content_identifier}"`,
+      'CDN-Cache-Control': 'max-age=31536000',
+    });
+  });
+
   app.openapi(routes.images.genmoji.add, async (c) => {
     const genmoji = c.req.valid('json');
 

@@ -758,22 +758,15 @@ export const createV1Routes = () => {
     const buffer = Buffer.from(genmoji.imageContent, 'base64');
     const hexString = `\\x${buffer.toString('hex')}`;
 
-    const { error } = await c
-      .get('supabase')
-      .from('genmojis')
-      .insert({
-        ...objectToSnake(genmoji),
-        image_content: hexString,
-      });
+    const data = {
+      ...genmoji,
+      imageContent: hexString,
+    };
 
-    if (error) {
-      return c.json(
-        {
-          error: `Error inserting genmoji. Error=${JSON.stringify(error)}`,
-        },
-        400,
-      );
-    }
+    await c.env.keepfresh_genmoji.put(
+      `genmoji:${genmoji.name}`,
+      JSON.stringify(data),
+    );
 
     return c.body(null, 201);
   });

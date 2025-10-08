@@ -4,16 +4,16 @@
     "": {
       "name": "lead-gen-api",
       "dependencies": {
-        "@cloudflare/workers-types": "^4.20250906.0",
         "@hono/zod-openapi": "^1.1.0",
         "@scalar/hono-api-reference": "^0.9.13",
-        "@supabase/supabase-js": "latest",
+        "@supabase/supabase-js": "^2.57.2",
         "hono": "^4.9.1",
         "ts-case-convert": "^2.1.0",
-        "zod": "latest",
+        "zod": "^4.1.11",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.2.4",
+        "@cloudflare/workers-types": "^4.20251008.0",
         "@types/bun": "^1.2.20",
       },
       "peerDependencies": {
@@ -42,7 +42,7 @@
 
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.2.5", "", { "os": "win32", "cpu": "x64" }, "sha512-F/jhuXCssPFAuciMhHKk00xnCAxJRS/pUzVfXYmOMUp//XW7mO6QeCjsjvnm8L4AO/dG2VOB0O+fJPiJ2uXtIw=="],
 
-    "@cloudflare/workers-types": ["@cloudflare/workers-types@4.20251004.0", "", {}, "sha512-FkTBHEyOBwphbW4SLQ2XLCgNntD2wz0v1Si7NwJeN0JAPW/39/w6zhsKy3rsh+203tuSfBgsoP34+Os4RaySOw=="],
+    "@cloudflare/workers-types": ["@cloudflare/workers-types@4.20251008.0", "", {}, "sha512-dZLkO4PbCL0qcCSKzuW7KE4GYe49lI12LCfQ5y9XeSwgYBoAUbwH4gmJ6A0qUIURiTJTkGkRkhVPqpq2XNgYRA=="],
 
     "@hono/zod-openapi": ["@hono/zod-openapi@1.1.3", "", { "dependencies": { "@asteasolutions/zod-to-openapi": "^8.1.0", "@hono/zod-validator": "^0.7.3", "openapi3-ts": "^4.5.0" }, "peerDependencies": { "hono": ">=4.3.6", "zod": "^4.0.0" } }, "sha512-ikA8p0Jt7yplxOqbYwdh8rCQWaGN4bu8zK1HbCWqfWT9clo87L32D0eAQ/r0tJodtZbTV5d1vPB75FCkUt1Jdg=="],
 

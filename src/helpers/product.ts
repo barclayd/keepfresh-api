@@ -12,7 +12,7 @@ export const getUniqueProducts = (products: OpenFoodFactsProduct[]) => {
   const seen = new Set<string>();
 
   return products.filter((product) => {
-    if (product.productName === undefined) {
+    if (product.productName === undefined || product.productName.length < 2) {
       return false;
     }
 

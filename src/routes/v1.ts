@@ -711,6 +711,32 @@ export const createV1Routes = () => {
     );
   });
 
+  app.openapi(routes.images.genmoji.add, async (c) => {
+    const genmoji = c.req.valid('json');
+
+    const buffer = Buffer.from(genmoji.imageContent, 'base64');
+    const hexString = `\\x${buffer.toString('hex')}`;
+
+    const { error } = await c
+      .get('supabase')
+      .from('genmojis')
+      .insert({
+        ...objectToSnake(genmoji),
+        image_content: hexString,
+      });
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error inserting genmoji. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.body(null, 201);
+  });
+
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {
     type: 'http',
     scheme: 'bearer',

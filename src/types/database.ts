@@ -92,6 +92,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      genmojis: {
+        Row: {
+          content_description: string;
+          content_identifier: string;
+          content_type: string;
+          created_at: string;
+          id: number;
+          image_content: string;
+          name: string;
+        };
+        Insert: {
+          content_description: string;
+          content_identifier: string;
+          content_type: string;
+          created_at?: string;
+          id?: number;
+          image_content: string;
+          name: string;
+        };
+        Update: {
+          content_description?: string;
+          content_identifier?: string;
+          content_type?: string;
+          created_at?: string;
+          id?: number;
+          image_content?: string;
+          name?: string;
+        };
+        Relationships: [];
+      };
       inventory_item_events: {
         Row: {
           category_path: unknown | null;

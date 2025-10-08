@@ -731,7 +731,7 @@ export const createV1Routes = () => {
     const genmoji = c.req.valid('json');
 
     await c.env.keepfresh_genmoji.put(
-      `genmoji:${genmoji.name}`,
+      `genmoji:${genmoji.name.toLowerCase()}`,
       JSON.stringify(genmoji),
     );
 

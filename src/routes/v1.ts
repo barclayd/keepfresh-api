@@ -4,6 +4,7 @@ import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { search } from '@/clients/open-food-facts';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/api';
+import type { Genmoji } from '@/schemas/genmoji';
 import {
   InventoryItemSuggestions,
   InventoryItemsSchema,
@@ -41,10 +42,8 @@ export const createV1Routes = () => {
       id,
       name,
       brand,
-      image_url,
       category:categories (
         name,
-        image_url,
         icon,
         path_display
       ),
@@ -618,7 +617,6 @@ export const createV1Routes = () => {
       id,
       name,
       brand,
-      image_url,
       amount,
       unit,
       source_id,
@@ -626,7 +624,6 @@ export const createV1Routes = () => {
       category:categories (
         id,
         name,
-        image_url,
         icon,
         path_display,
         recommended_storage_location
@@ -657,10 +654,6 @@ export const createV1Routes = () => {
         id: data.source_id,
         ref: data.source_ref,
       },
-      imageURL:
-        parsedData.imageUrl ??
-        parsedData.category.imageUrl ??
-        'https://keep-fresh-images.s3.eu-west-2.amazonaws.com/milk.png',
       unit: parsedData.unit ?? undefined,
       amount: parsedData.amount ?? undefined,
     });
@@ -709,6 +702,40 @@ export const createV1Routes = () => {
       },
       200,
     );
+  });
+
+  app.openapi(routes.images.genmoji.get, async (c) => {
+    const { name } = c.req.valid('param');
+
+    const genmoji = await c.env.keepfresh_genmoji.get<Genmoji>(
+      `genmoji:${name.toLowerCase()}`,
+      'json',
+    );
+
+    if (!genmoji) {
+      return c.json(
+        {
+          error: `Error occurred retrieving genmoji with name=${name}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(genmoji, 200, {
+      'Cache-Control': 'public, max-age=31536000, immutable',
+      'CDN-Cache-Control': 'max-age=31536000',
+    });
+  });
+
+  app.openapi(routes.images.genmoji.add, async (c) => {
+    const genmoji = c.req.valid('json');
+
+    await c.env.keepfresh_genmoji.put(
+      `genmoji:${genmoji.name.toLowerCase()}`,
+      JSON.stringify(genmoji),
+    );
+
+    return c.body(null, 201);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

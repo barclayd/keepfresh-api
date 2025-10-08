@@ -12,7 +12,6 @@
     "types:db": "bunx supabase gen types typescript --project-id ajvsqwbowwilmcqyynye > ./src/types/database.ts"
   },
   "dependencies": {
-    "@cloudflare/workers-types": "^4.20250906.0",
     "@hono/zod-openapi": "^1.1.0",
     "@scalar/hono-api-reference": "^0.9.13",
     "@supabase/supabase-js": "^2.57.2",
@@ -22,6 +21,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.2.4",
+    "@cloudflare/workers-types": "^4.20251008.0",
     "@types/bun": "^1.2.20"
   },
   "peerDependencies": {

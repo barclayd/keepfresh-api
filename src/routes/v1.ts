@@ -732,7 +732,20 @@ export const createV1Routes = () => {
       );
     }
 
-    return c.json(objectToCamel(data), 200, {
+    const etag = `"${data.content_identifier}"`;
+
+    const clientETag = c.req.header('If-None-Match');
+
+    if (clientETag === etag) {
+      return c.body(null, 304);
+    }
+
+    const base64 = Buffer.from(
+      data.image_content.replace(/^\\x/, ''),
+      'hex',
+    ).toString('base64');
+
+    return c.json(objectToCamel({ ...data, image_content: base64 }), 200, {
       'Cache-Control': 'public, max-age=31536000, immutable',
       ETag: `"${data.content_identifier}"`,
       'CDN-Cache-Control': 'max-age=31536000',

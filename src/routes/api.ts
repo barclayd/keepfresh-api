@@ -412,6 +412,9 @@ export const routes = {
             },
             description: 'Error occurred when creating genmojji',
           },
+          304: {
+            description: 'Genmojji not modified',
+          },
           400: {
             content: {
               'application/json': {

@@ -387,12 +387,47 @@ export const routes = {
         },
       ],
     }),
+    barcode: createRoute({
+      method: 'get',
+      path: '/products/barcode/{barcode}',
+      request: {
+        params: z.object({
+          barcode: z.string(),
+        }),
+      },
+      middleware: [supabaseMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                product: ProductSearchItemSchema,
+              }),
+            },
+          },
+          description: 'Success response from InventoryItemInput Gen API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
   },
   images: {
     genmoji: {
       get: createRoute({
         method: 'get',
-        path: '/images/genmoji/:name',
+        path: '/images/genmoji/{name}',
         request: {
           params: z.object({
             name: z.string(),

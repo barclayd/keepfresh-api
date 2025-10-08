@@ -1,8 +1,8 @@
-import { OpenAPIHono } from '@hono/zod-openapi';
+import { Hono } from 'hono';
 import { createV1Routes } from '@/routes/v1';
 import type { HonoEnvironment } from '@/types/hono';
 
-const app = new OpenAPIHono<HonoEnvironment>();
+const app = new Hono<HonoEnvironment>();
 
 const v1App = createV1Routes();
 

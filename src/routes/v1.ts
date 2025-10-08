@@ -1,7 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
 import { objectToCamel, objectToSnake } from 'ts-case-convert';
-import { search } from '@/clients/open-food-facts';
+import { getProductByBarcode, search } from '@/clients/open-food-facts';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/api';
 import type { Genmoji } from '@/schemas/genmoji';
@@ -702,6 +702,23 @@ export const createV1Routes = () => {
       },
       200,
     );
+  });
+
+  app.openapi(routes.products.barcode, async (c) => {
+    const { barcode } = c.req.valid('param');
+
+    const product = await getProductByBarcode(barcode, c.get('supabase'));
+
+    if (!product) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product with product=${product}`,
+        },
+        400,
+      );
+    }
+
+    return c.json({ product }, 200);
   });
 
   app.openapi(routes.images.genmoji.get, async (c) => {

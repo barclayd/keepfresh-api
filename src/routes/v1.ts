@@ -723,7 +723,7 @@ export const createV1Routes = () => {
       );
     }
 
-    return c.json({ product }, 200, {
+    return c.json(product, 200, {
       'Cache-Control': 'public, max-age=2592000, immutable',
     });
   });

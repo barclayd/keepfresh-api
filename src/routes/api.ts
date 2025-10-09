@@ -258,9 +258,7 @@ export const routes = {
         200: {
           content: {
             'application/json': {
-              schema: z.object({
-                product: ProductSearchItemSchema,
-              }),
+              schema: ProductSearchItemSchema,
             },
           },
           description: 'Success response from product/random endpoint',

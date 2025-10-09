@@ -648,7 +648,6 @@ export const createV1Routes = () => {
       ...parsedData,
       category: {
         ...parsedData.category,
-        icon: parsedData.category.icon ?? 'chicken',
         path: getCategoryPath(parsedData.category.pathDisplay),
       },
       source: {
@@ -657,6 +656,7 @@ export const createV1Routes = () => {
       },
       unit: parsedData.unit ?? undefined,
       amount: parsedData.amount ?? undefined,
+      icon: parsedData.category.icon ?? 'chicken',
     });
 
     return c.json(productSearchItem, 200);

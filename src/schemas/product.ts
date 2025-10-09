@@ -7,13 +7,12 @@ export const ProductSearchItemSchema = z.object({
   category: z.object({
     id: z.int(),
     name: z.string(),
-    icon: z.string(),
     path: z.string(),
     recommendedStorageLocation: storageLocationFieldMapper.outputSchema,
   }),
   amount: z.number().optional(),
   unit: z.string().optional(),
-  icon: z.string().optional(),
+  icon: z.string(),
   source: z.object({
     id: z.int(),
     ref: z.string(),

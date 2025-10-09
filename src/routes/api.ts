@@ -1,6 +1,7 @@
 import { createRoute } from '@hono/zod-openapi';
 import * as z from 'zod';
 import { Units } from '@/helpers/product';
+import { authMiddleware } from '@/middleware/auth';
 import { supabaseMiddleware } from '@/middleware/db';
 import { GenmojiSchema } from '@/schemas/genmoji';
 import {
@@ -21,7 +22,7 @@ export const routes = {
     get: createRoute({
       method: 'get',
       path: '/inventory',
-      middleware: [supabaseMiddleware],
+      middleware: [supabaseMiddleware, authMiddleware],
       responses: {
         200: {
           content: {
@@ -66,7 +67,7 @@ export const routes = {
           },
         },
       },
-      middleware: [supabaseMiddleware],
+      middleware: [supabaseMiddleware, authMiddleware],
       responses: {
         200: {
           content: {
@@ -114,7 +115,7 @@ export const routes = {
           },
         },
       },
-      middleware: [supabaseMiddleware],
+      middleware: [supabaseMiddleware, authMiddleware],
       responses: {
         204: {
           description: 'Successfully updated inventory item',
@@ -165,7 +166,7 @@ export const routes = {
           },
         },
       },
-      middleware: [supabaseMiddleware],
+      middleware: [supabaseMiddleware, authMiddleware],
       responses: {
         200: {
           content: {
@@ -225,7 +226,7 @@ export const routes = {
     list: createRoute({
       method: 'get',
       path: '/products',
-      middleware: [supabaseMiddleware],
+      middleware: [supabaseMiddleware, authMiddleware],
       request: {
         query: z.object({
           search: z.string(),
@@ -282,7 +283,7 @@ export const routes = {
     resolve: createRoute({
       method: 'post',
       path: '/products/resolve',
-      middleware: [supabaseMiddleware],
+      middleware: [supabaseMiddleware, authMiddleware],
       request: {
         body: {
           content: {
@@ -328,7 +329,7 @@ export const routes = {
           productId: z.coerce.number(),
         }),
       },
-      middleware: [supabaseMiddleware],
+      middleware: [supabaseMiddleware, authMiddleware],
       responses: {
         200: {
           content: {
@@ -395,7 +396,7 @@ export const routes = {
           barcode: z.string(),
         }),
       },
-      middleware: [supabaseMiddleware],
+      middleware: [supabaseMiddleware, authMiddleware],
       responses: {
         200: {
           content: {

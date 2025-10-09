@@ -24,6 +24,8 @@ export const createV1Routes = () => {
   const app = new OpenAPIHono<HonoEnvironment>();
 
   app.openapi(routes.inventory.get, async (c) => {
+    const userId = c.get('userId');
+
     const { data, error } = await c
       .get('supabase')
       .from('inventory_items')
@@ -51,7 +53,7 @@ export const createV1Routes = () => {
       unit
     )
   `)
-      .eq('user_id', '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2')
+      .eq('user_id', userId)
       .in('status', ActiveInventoryItemStatus);
 
     if (error) {
@@ -85,10 +87,6 @@ export const createV1Routes = () => {
   app.openapi(routes.inventory.add, async (c) => {
     const inventoryItemInput = c.req.valid('json');
 
-    // add userId to context - need to explore how I can manage sessions. Better auth?
-
-    // authenticate user in middleware, retrieve userId from context
-
     const productUpsertResponse = await c
       .get('supabase')
       .from('products')
@@ -116,13 +114,15 @@ export const createV1Routes = () => {
 
     const { id: productId } = productUpsertResponse.data;
 
+    const userId = c.get('userId');
+
     const inventoryItemsResponse = await c
       .get('supabase')
       .from('inventory_items')
       .insert({
         ...objectToSnake(inventoryItemInput.item),
         product_id: productId,
-        user_id: '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2',
+        user_id: userId,
         ...(inventoryItemInput.item.consumptionPrediction && {
           consumption_prediction_changed_at: new Date().toISOString(),
         }),
@@ -255,7 +255,7 @@ export const createV1Routes = () => {
 
     const { id: productId } = productUpsertResponse.data;
 
-    const userId = '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2';
+    const userId = c.get('userId');
 
     const productHistoryResponse = await supabase
       .from('inventory_items')
@@ -438,7 +438,7 @@ export const createV1Routes = () => {
 
     const supabase = c.get('supabase');
 
-    const userId = '7d6ec109-db40-4b94-b4ef-fb5bbc318ff2';
+    const userId = c.get('userId');
 
     const { data: product, error: productError } = await supabase
       .from('products')

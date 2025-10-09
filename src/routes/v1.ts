@@ -648,6 +648,7 @@ export const createV1Routes = () => {
       ...parsedData,
       category: {
         ...parsedData.category,
+        icon: parsedData.category.icon ?? 'chicken',
         path: getCategoryPath(parsedData.category.pathDisplay),
       },
       source: {

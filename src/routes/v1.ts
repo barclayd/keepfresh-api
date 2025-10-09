@@ -658,12 +658,7 @@ export const createV1Routes = () => {
       amount: parsedData.amount ?? undefined,
     });
 
-    return c.json(
-      {
-        product: productSearchItem,
-      },
-      200,
-    );
+    return c.json(productSearchItem, 200);
   });
 
   app.openapi(routes.products.resolve, async (c) => {

@@ -80,9 +80,9 @@ export const InventoryItemsSchema = z.array(
     product: z.object({
       id: z.number(),
       name: z.string(),
-      unit: z.string(),
+      unit: z.string().nullable(),
       brand: z.string(),
-      amount: z.number(),
+      amount: z.number().nullable(),
       category: z.object({
         icon: z.string().nullable(),
         name: z.string(),

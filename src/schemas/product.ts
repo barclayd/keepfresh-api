@@ -12,7 +12,7 @@ export const ProductSearchItemSchema = z.object({
   }),
   amount: z.number().optional(),
   unit: z.string().optional(),
-  icon: z.string().optional(),
+  icon: z.string(),
   source: z.object({
     id: z.int(),
     ref: z.string(),

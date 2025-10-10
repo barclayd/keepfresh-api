@@ -163,9 +163,7 @@ export const InventoryItemAddResponse = {
 };
 
 export const InventoryGETSchemaResponse = {
-  200: z.object({
-    inventoryItems: InventoryItemsSchema,
-  }),
+  200: InventoryItemsSchema,
   400: z.object({
     error: z.string().openapi({
       example: 'Invalid grocery item name',

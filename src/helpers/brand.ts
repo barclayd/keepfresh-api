@@ -28,7 +28,7 @@ export const brandMap: Record<string, KnownBrands> = {
 export const formatBrand = (brand: string) => {
   const formattedBrandName = formatName(brand);
 
-  const mappedBrand = brandMap[formattedBrandName];
+  const mappedBrand = brandMap[formattedBrandName.toLowerCase()];
 
   return mappedBrand ?? toTitleCase(formattedBrandName);
 };

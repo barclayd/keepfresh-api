@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { objectToCamel } from 'ts-case-convert';
+import { formatBrand } from '@/helpers/brand';
 import { formatName, getCategoryPath } from '@/helpers/category';
 import { getUniqueProducts } from '@/helpers/product';
 import { parseQuantity } from '@/helpers/quantity';
@@ -79,7 +80,7 @@ export const search = async (
 
       return {
         name: productName,
-        brand: toTitleCase(formatName(product.brands)),
+        brand: formatBrand(product.brands),
         category: {
           id: category.id,
           name: toTitleCase(formatName(category.name)),
@@ -145,7 +146,7 @@ export const getProductByBarcode = async (
 
   return {
     name: productName,
-    brand: toTitleCase(formatName(product.brands)),
+    brand: formatBrand(product.brands),
     category: {
       id: category.id,
       name: toTitleCase(formatName(category.name)),

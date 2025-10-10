@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { objectToCamel } from 'ts-case-convert';
-import { getCategoryPath } from '@/helpers/category';
+import { formatName, getCategoryPath } from '@/helpers/category';
 import { getUniqueProducts } from '@/helpers/product';
 import { parseQuantity } from '@/helpers/quantity';
 import { toTitleCase } from '@/helpers/toTitleCase';
@@ -145,10 +145,10 @@ export const getProductByBarcode = async (
 
   return {
     name: productName,
-    brand: toTitleCase(product.brands),
+    brand: toTitleCase(formatName(product.brands)),
     category: {
       id: category.id,
-      name: category.name,
+      name: toTitleCase(formatName(category.name)),
       path: getCategoryPath(category.path_display),
       recommendedStorageLocation: storageLocationFieldMapper.toUI(
         category.recommended_storage_location,

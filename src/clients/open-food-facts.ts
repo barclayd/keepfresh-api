@@ -79,10 +79,10 @@ export const search = async (
 
       return {
         name: productName,
-        brand: toTitleCase(product.brands),
+        brand: toTitleCase(formatName(product.brands)),
         category: {
           id: category.id,
-          name: category.name,
+          name: toTitleCase(formatName(category.name)),
           path: getCategoryPath(category.path_display),
           recommendedStorageLocation: storageLocationFieldMapper.toUI(
             category.recommended_storage_location,

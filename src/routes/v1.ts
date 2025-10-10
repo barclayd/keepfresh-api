@@ -76,12 +76,7 @@ export const createV1Routes = () => {
       );
     }
 
-    return c.json(
-      {
-        inventoryItems: inventoryItems.data,
-      },
-      200,
-    );
+    return c.json(inventoryItems.data, 200);
   });
 
   app.openapi(routes.inventory.add, async (c) => {

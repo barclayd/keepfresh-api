@@ -8,6 +8,7 @@ type KnownBrands =
   | 'Morrisons'
   | "Sainsbury's"
   | 'Co-op'
+  | 'Asda'
   | 'Lidl';
 
 export const brandMap: Record<string, KnownBrands> = {
@@ -23,6 +24,8 @@ export const brandMap: Record<string, KnownBrands> = {
   morrison: 'Morrisons',
   ashfields: 'Aldi',
   ashfield: 'Aldi',
+  asdas: 'Asda',
+  cowbelle: 'Aldi',
 };
 
 export const formatBrand = (brand: string) => {

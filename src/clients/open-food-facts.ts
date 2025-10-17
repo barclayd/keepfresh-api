@@ -90,7 +90,7 @@ export const search = async (
           ),
         },
         icon: category?.icon ?? 'chicken',
-        ...(quantity && {
+        ...(quantity?.hasSupportedUnit && {
           amount: quantity.amount,
           unit: quantity.unit,
         }),
@@ -156,7 +156,7 @@ export const getProductByBarcode = async (
       ),
     },
     icon: category?.icon ?? 'chicken',
-    ...(quantity && {
+    ...(quantity?.hasSupportedUnit && {
       amount: quantity.amount,
       unit: quantity.unit,
     }),

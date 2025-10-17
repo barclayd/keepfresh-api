@@ -1,3 +1,5 @@
+import { getSupportedUnit } from '@/helpers/units';
+
 export const parseQuantity = (quantity: string | undefined) => {
   if (!quantity) {
     return;
@@ -9,8 +11,11 @@ export const parseQuantity = (quantity: string | undefined) => {
     return;
   }
 
+  const unit = getSupportedUnit(match[2]);
+
   return {
     amount: parseFloat(match[1]),
-    unit: match[2],
+    unit,
+    hasSupportedUnit: unit !== undefined,
   };
 };

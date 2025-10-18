@@ -258,7 +258,8 @@ export const createV1Routes = () => {
       .select(
         'percentage_remaining, created_at, consumed_at, discarded_at, status',
       )
-      .eq('product_id', productId);
+      .eq('product_id', productId)
+      .eq('user_id', userId);
 
     if (productHistoryResponse.error) {
       return c.json(
@@ -297,6 +298,7 @@ export const createV1Routes = () => {
         'percentage_remaining, created_at, consumed_at, discarded_at, product:products!inner(category_id)',
       )
       .eq('product.category_id', product.categoryId)
+      .eq('user_id', userId)
       .in('status', ['consumed', 'discarded']);
 
     if (categoryHistoryResponse.error) {
@@ -466,6 +468,7 @@ export const createV1Routes = () => {
         'percentage_remaining, opened_at, consumed_at, discarded_at, status',
       )
       .eq('product_id', productId)
+      .eq('user_id', userId)
       .not('opened_at', 'is', null)
       .in('status', ['consumed', 'discarded']);
 
@@ -497,6 +500,7 @@ export const createV1Routes = () => {
         'percentage_remaining, opened_at, consumed_at, discarded_at, product:products!inner(category_id)',
       )
       .eq('product.category_id', product.category_id)
+      .eq('user_id', userId)
       .not('opened_at', 'is', null)
       .in('status', ['consumed', 'discarded']);
 
@@ -581,6 +585,50 @@ export const createV1Routes = () => {
             freezer: product.category.shelf_life_in_freezer_in_days_opened,
           },
         },
+      },
+      200,
+    );
+  });
+
+  app.openapi(routes.products.usageStats, async (c) => {
+    const { productId } = c.req.valid('param');
+
+    const supabase = c.get('supabase');
+
+    const userId = c.get('userId');
+
+    const productHistoryResponse = await supabase
+      .from('inventory_items')
+      .select(
+        'percentage_remaining, created_at, consumed_at, discarded_at, status',
+      )
+      .eq('product_id', productId)
+      .eq('user_id', userId)
+      .in('status', ['consumed', 'discarded']);
+
+    if (!productHistoryResponse.data) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product history. Error=${JSON.stringify(productHistoryResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const productDaysToOutcome = productHistoryResponse.data
+      .map((item) =>
+        calculateDaysBetween(
+          item.created_at,
+          item.consumed_at || item.discarded_at,
+        ),
+      )
+      .filter((days): days is number => days !== null);
+
+    return c.json(
+      {
+        medianDaysToOutcome:
+          calculateMedian(productDaysToOutcome) ??
+          calculateMean(productDaysToOutcome),
       },
       200,
     );

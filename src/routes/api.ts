@@ -386,6 +386,41 @@ export const routes = {
         },
       ],
     }),
+    usageStats: createRoute({
+      method: 'get',
+      path: '/products/{productId}/usage-stats',
+      request: {
+        params: z.object({
+          productId: z.coerce.number(),
+        }),
+      },
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                medianDaysToOutcome: z.number().min(0).nullable(),
+              }),
+            },
+          },
+          description: 'Success response from InventoryItemInput Gen API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
     barcode: createRoute({
       method: 'get',
       path: '/products/barcode/{barcode}',

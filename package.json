@@ -1,5 +1,5 @@
 {
-  "name": "lead-gen-api",
+  "name": "keepfresh-api",
   "module": "src/app.ts",
   "type": "module",
   "private": true,
@@ -12,7 +12,7 @@
     "types:db": "bunx supabase gen types typescript --project-id ajvsqwbowwilmcqyynye > ./src/types/database.ts"
   },
   "dependencies": {
-    "@hono/zod-openapi": "^1.1.0",
+    "@hono/zod-openapi": "^1.1.4",
     "@scalar/hono-api-reference": "^0.9.22",
     "@supabase/supabase-js": "^2.75.1",
     "hono": "^4.10.1",

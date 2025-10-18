@@ -45,6 +45,7 @@ export const createV1Routes = () => {
       name,
       brand,
       category:categories (
+        id,
         name,
         icon,
         path_display
@@ -762,9 +763,8 @@ export const createV1Routes = () => {
     openapi: '3.1.0',
     info: {
       version: '1.0.0',
-      title: 'AnyVan InventoryItemInput Gen API',
-      description:
-        'Use this API to send leads to Anyvan.\n\nThe API is authenticated with Bearer Authentication, providing a header of "Authentication": "Bearer {your_token}."\n\nThe minimum information required for a lead: moveDetails.contactDetails.email, moveDetails.contactDetails.firstname, moveDetails.contactDetails.lastname.\n\nIf you need any support with this API, please contact daniel.barclay@anyvan.com.',
+      title: 'KeepFresh API',
+      description: 'KeepFresh API',
     },
     servers: [
       {
@@ -787,8 +787,8 @@ export const createV1Routes = () => {
     Scalar({
       url: 'doc',
       theme: 'bluePlanet',
-      favicon: 'https://www.anyvan.com/favicon.ico',
-      pageTitle: 'AnyVan InventoryItemInput Gen API',
+      favicon: 'https://keepfre.sh/favicon.ico',
+      pageTitle: 'KeepFresh API',
     }),
   );
 

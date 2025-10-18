@@ -85,6 +85,7 @@ export const InventoryItemsSchema = z.array(
       amount: z.number().nullable(),
       category: z.object({
         icon: z.string().nullable(),
+        id: z.int(),
         name: z.string(),
         pathDisplay: z.string(),
       }),

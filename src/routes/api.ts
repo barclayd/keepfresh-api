@@ -30,7 +30,7 @@ export const routes = {
               schema: InventoryGETSchemaResponse['200'],
             },
           },
-          description: 'Success response from InventoryItemInput Gen API',
+          description: 'Success response from KeepFresh API',
         },
         400: {
           content: {
@@ -75,7 +75,7 @@ export const routes = {
               schema: InventoryItemAddResponse['200'],
             },
           },
-          description: 'Success response from InventoryItemInput Gen API',
+          description: 'Success response from KeepFresh API',
         },
         400: {
           content: {
@@ -204,7 +204,7 @@ export const routes = {
               }),
             },
           },
-          description: 'Success response from InventoryItemInput Gen API',
+          description: 'Success response from KeepFresh API',
         },
         400: {
           content: {
@@ -241,7 +241,7 @@ export const routes = {
               }),
             },
           },
-          description: 'Success response from InventoryItemInput Gen API',
+          description: 'Success response from KeepFresh API',
         },
       },
       security: [
@@ -302,7 +302,7 @@ export const routes = {
               }),
             },
           },
-          description: 'Success response from InventoryItemInput Gen API',
+          description: 'Success response from KeepFresh API',
         },
         400: {
           content: {
@@ -369,7 +369,7 @@ export const routes = {
               }),
             },
           },
-          description: 'Success response from InventoryItemInput Gen API',
+          description: 'Success response from KeepFresh API',
         },
         400: {
           content: {
@@ -404,7 +404,7 @@ export const routes = {
               }),
             },
           },
-          description: 'Success response from InventoryItemInput Gen API',
+          description: 'Success response from KeepFresh API',
         },
         400: {
           content: {
@@ -437,7 +437,7 @@ export const routes = {
               schema: ProductSearchItemSchema,
             },
           },
-          description: 'Success response from InventoryItemInput Gen API',
+          description: 'Success response from KeepFresh API',
         },
         400: {
           content: {

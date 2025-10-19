@@ -178,25 +178,25 @@ export const routes = {
                     purchaseCount: z.number(),
                     consumedCount: z.number(),
                     usagePercentages: z.array(z.number()),
-                    averageUsage: z.number(),
+                    averageUsage: z.number().optional(),
                     medianUsage: z.number().optional(),
-                    standardDeviation: z.number(),
-                    averageDaysToConsumeOrDiscarded: z.number(),
+                    standardDeviation: z.number().optional(),
+                    averageDaysToConsumeOrDiscarded: z.number().optional(),
                     medianDaysToConsumeOrDiscarded: z.number().optional(),
                   }),
                   categoryHistory: z.object({
                     purchaseCount: z.number(),
-                    averageUsage: z.number(),
+                    averageUsage: z.number().optional(),
                     medianUsage: z.number().optional(),
-                    standardDeviation: z.number(),
-                    averageDaysToConsumeOrDiscarded: z.number(),
+                    standardDeviation: z.number().optional(),
+                    averageDaysToConsumeOrDiscarded: z.number().optional(),
                     medianDaysToConsumeOrDiscarded: z.number().optional(),
                   }),
                   userBaseline: z.object({
-                    averageUsage: z.number(),
+                    averageUsage: z.number().optional(),
                     medianUsage: z.number().optional(),
                     totalItemsCount: z.number(),
-                    averageDaysToConsumeOrDiscarded: z.number(),
+                    averageDaysToConsumeOrDiscarded: z.number().optional(),
                     medianDaysToConsumeOrDiscarded: z.number().optional(),
                   }),
                 }),
@@ -388,7 +388,7 @@ export const routes = {
     }),
     usageStats: createRoute({
       method: 'get',
-      path: '/products/{productId}/usage-stats',
+      path: '/products/{productId}/stats',
       request: {
         params: z.object({
           productId: z.coerce.number(),
@@ -400,7 +400,13 @@ export const routes = {
           content: {
             'application/json': {
               schema: z.object({
-                medianDaysToOutcome: z.number().min(0).nullable(),
+                product: z.object({
+                  medianDaysToOutcome: z.number().optional(),
+                  medianUsage: z.number().optional(),
+                }),
+                category: z.object({
+                  medianUsage: z.number().optional(),
+                }),
               }),
             },
           },

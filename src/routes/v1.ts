@@ -379,9 +379,9 @@ export const createV1Routes = () => {
           productHistory: {
             purchaseCount,
             consumedCount,
-            usagePercentages: productUsagePercentages.map(
-              (usagePercentage) => Math.round(usagePercentage * 100) / 100,
-            ),
+            usagePercentages: productUsagePercentages
+              .map((usagePercentage) => toTwoDecimalPlaces(usagePercentage))
+              .filter((usagePercentage) => usagePercentage !== undefined),
             averageUsage: toTwoDecimalPlaces(
               calculateMean(productUsagePercentages),
             ),
@@ -413,8 +413,9 @@ export const createV1Routes = () => {
             ),
           },
           userBaseline: {
-            averageUsage:
-              Math.round(calculateMean(userUsagePercentages) * 100) / 100,
+            averageUsage: toTwoDecimalPlaces(
+              calculateMean(userUsagePercentages),
+            ),
             medianUsage: calculateMedian(userUsagePercentages),
             totalItemsCount: userUsagePercentages.length,
             averageDaysToConsumeOrDiscarded: toTwoDecimalPlaces(
@@ -597,6 +598,23 @@ export const createV1Routes = () => {
 
     const userId = c.get('userId');
 
+    const categoryResponse = await supabase
+      .from('products')
+      .select('category_id')
+      .eq('id', productId)
+      .single();
+
+    if (categoryResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product history. Error=${JSON.stringify(categoryResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const { category_id: categoryId } = categoryResponse.data;
+
     const productHistoryResponse = await supabase
       .from('inventory_items')
       .select(
@@ -615,6 +633,24 @@ export const createV1Routes = () => {
       );
     }
 
+    const categoryHistoryResponse = await supabase
+      .from('inventory_items')
+      .select(
+        'percentage_remaining, created_at, consumed_at, discarded_at, product:products!inner(category_id)',
+      )
+      .eq('product.category_id', categoryId)
+      .eq('user_id', userId)
+      .in('status', ['consumed', 'discarded']);
+
+    if (categoryHistoryResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving category history. Error=${JSON.stringify(categoryHistoryResponse.error)}`,
+        },
+        400,
+      );
+    }
+
     const productDaysToOutcome = productHistoryResponse.data
       .map((item) =>
         calculateDaysBetween(
@@ -624,11 +660,29 @@ export const createV1Routes = () => {
       )
       .filter((days): days is number => days !== null);
 
+    const productUsagePercentages = productHistoryResponse.data.map(
+      (item) => 100 - item.percentage_remaining,
+    );
+
+    const categoryUsagePercentages = categoryHistoryResponse.data.map(
+      (item) => 100 - item.percentage_remaining,
+    );
+
     return c.json(
       {
-        medianDaysToOutcome:
-          calculateMedian(productDaysToOutcome) ??
-          calculateMean(productDaysToOutcome),
+        product: {
+          medianDaysToOutcome:
+            calculateMedian(productDaysToOutcome) ??
+            calculateMean(productDaysToOutcome),
+          medianUsage:
+            calculateMedian(productUsagePercentages) ??
+            calculateMean(productUsagePercentages),
+        },
+        category: {
+          medianUsage:
+            calculateMedian(categoryUsagePercentages) ??
+            calculateMean(categoryUsagePercentages),
+        },
       },
       200,
     );

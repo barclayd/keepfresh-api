@@ -388,7 +388,7 @@ export const routes = {
     }),
     usageStats: createRoute({
       method: 'get',
-      path: '/products/{productId}/usage-stats',
+      path: '/products/{productId}/stats',
       request: {
         params: z.object({
           productId: z.coerce.number(),
@@ -400,7 +400,13 @@ export const routes = {
           content: {
             'application/json': {
               schema: z.object({
-                medianDaysToOutcome: z.number().min(0).nullable(),
+                product: z.object({
+                  medianDaysToOutcome: z.number().min(0),
+                  medianUsage: z.number().min(0),
+                }),
+                category: z.object({
+                  medianUsage: z.number().min(0),
+                }),
               }),
             },
           },

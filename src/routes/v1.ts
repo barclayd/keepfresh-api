@@ -379,9 +379,9 @@ export const createV1Routes = () => {
           productHistory: {
             purchaseCount,
             consumedCount,
-            usagePercentages: productUsagePercentages.map(
-              (usagePercentage) => Math.round(usagePercentage * 100) / 100,
-            ),
+            usagePercentages: productUsagePercentages
+              .map((usagePercentage) => toTwoDecimalPlaces(usagePercentage))
+              .filter((usagePercentage) => usagePercentage !== undefined),
             averageUsage: toTwoDecimalPlaces(
               calculateMean(productUsagePercentages),
             ),
@@ -413,8 +413,9 @@ export const createV1Routes = () => {
             ),
           },
           userBaseline: {
-            averageUsage:
-              Math.round(calculateMean(userUsagePercentages) * 100) / 100,
+            averageUsage: toTwoDecimalPlaces(
+              calculateMean(userUsagePercentages),
+            ),
             medianUsage: calculateMedian(userUsagePercentages),
             totalItemsCount: userUsagePercentages.length,
             averageDaysToConsumeOrDiscarded: toTwoDecimalPlaces(

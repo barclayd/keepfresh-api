@@ -112,24 +112,27 @@ export const createV1Routes = () => {
 
     const userId = c.get('userId');
 
+    const quantity = inventoryItemInput.quantity || 1;
+
+    const inventoryItemsToInsert = Array.from({ length: quantity }, () => ({
+      ...objectToSnake(inventoryItemInput.item),
+      product_id: productId,
+      user_id: userId,
+      ...(inventoryItemInput.item.consumptionPrediction && {
+        consumption_prediction_changed_at: new Date().toISOString(),
+      }),
+    }));
+
     const inventoryItemsResponse = await c
       .get('supabase')
       .from('inventory_items')
-      .insert({
-        ...objectToSnake(inventoryItemInput.item),
-        product_id: productId,
-        user_id: userId,
-        ...(inventoryItemInput.item.consumptionPrediction && {
-          consumption_prediction_changed_at: new Date().toISOString(),
-        }),
-      })
-      .select('id')
-      .single();
+      .insert(inventoryItemsToInsert)
+      .select('id');
 
     if (inventoryItemsResponse.error) {
       return c.json(
         {
-          error: `Error occurred creating inventory item. Error=${JSON.stringify(inventoryItemsResponse.error)}`,
+          error: `Error occurred creating inventory item(s). Error=${JSON.stringify(inventoryItemsResponse.error)}`,
         },
         400,
       );
@@ -137,7 +140,14 @@ export const createV1Routes = () => {
 
     return c.json(
       {
-        inventoryItemId: inventoryItemsResponse.data.id,
+        ...(quantity === 1 && inventoryItemsResponse.data[0]
+          ? { inventoryItemId: inventoryItemsResponse.data[0].id }
+          : {
+              inventoryItemIds: inventoryItemsResponse.data.map(
+                (item) => item.id,
+              ),
+            }),
+        count: inventoryItemsResponse.data.length,
       },
       200,
     );

@@ -29,6 +29,7 @@ export const InventoryItemInput = z.object({
     consumptionPrediction: z.int().optional(),
   }),
   product: ProductInput,
+  quantity: z.number().optional(),
 });
 
 export const UpdateInventoryItemInput = z
@@ -113,9 +114,15 @@ export const InventoryItemSuggestions = z.object({
 export type InventoryItemInput = z.infer<typeof InventoryItemInput>;
 
 export const InventoryItemAddResponse = {
-  200: z.object({
-    inventoryItemId: z.int(),
-  }),
+  200: z
+    .object({
+      inventoryItemId: z.int(),
+    })
+    .or(
+      z.object({
+        inventoryItemIds: z.array(z.int()),
+      }),
+    ),
   400: z.object({
     error: z.string().openapi({
       example: 'Invalid grocery item name',

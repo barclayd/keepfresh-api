@@ -91,7 +91,7 @@ export type Database = {
       };
       inventory_item_events: {
         Row: {
-          category_path: unknown | null;
+          category_path: unknown;
           created_at: string;
           days_until_expiry: number | null;
           event_type: string;
@@ -106,7 +106,7 @@ export type Database = {
           user_id: string | null;
         };
         Insert: {
-          category_path?: unknown | null;
+          category_path?: unknown;
           created_at?: string;
           days_until_expiry?: number | null;
           event_type: string;
@@ -123,7 +123,7 @@ export type Database = {
           user_id?: string | null;
         };
         Update: {
-          category_path?: unknown | null;
+          category_path?: unknown;
           created_at?: string;
           days_until_expiry?: number | null;
           event_type?: string;
@@ -268,6 +268,7 @@ export type Database = {
           barcode: string | null;
           brand: string;
           category_id: number;
+          countries: string[] | null;
           created_at: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id: number;
@@ -284,6 +285,7 @@ export type Database = {
           barcode?: string | null;
           brand: string;
           category_id: number;
+          countries?: string[] | null;
           created_at?: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id?: number;
@@ -300,6 +302,7 @@ export type Database = {
           barcode?: string | null;
           brand?: string;
           category_id?: number;
+          countries?: string[] | null;
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
           id?: number;
@@ -327,6 +330,60 @@ export type Database = {
             referencedColumns: ['id'];
           },
         ];
+      };
+      temp_products: {
+        Row: {
+          amount: number | null;
+          barcode: string | null;
+          brand: string | null;
+          category_id: number | null;
+          countries: string | null;
+          created_at: string | null;
+          expiry_type: string | null;
+          id: number | null;
+          lifespan_in_days: number | null;
+          name: string | null;
+          source_id: number | null;
+          source_ref: string | null;
+          storage_location: string | null;
+          unit: string | null;
+          updated_at: string | null;
+        };
+        Insert: {
+          amount?: number | null;
+          barcode?: string | null;
+          brand?: string | null;
+          category_id?: number | null;
+          countries?: string | null;
+          created_at?: string | null;
+          expiry_type?: string | null;
+          id?: number | null;
+          lifespan_in_days?: number | null;
+          name?: string | null;
+          source_id?: number | null;
+          source_ref?: string | null;
+          storage_location?: string | null;
+          unit?: string | null;
+          updated_at?: string | null;
+        };
+        Update: {
+          amount?: number | null;
+          barcode?: string | null;
+          brand?: string | null;
+          category_id?: number | null;
+          countries?: string | null;
+          created_at?: string | null;
+          expiry_type?: string | null;
+          id?: number | null;
+          lifespan_in_days?: number | null;
+          name?: string | null;
+          source_id?: number | null;
+          source_ref?: string | null;
+          storage_location?: string | null;
+          unit?: string | null;
+          updated_at?: string | null;
+        };
+        Relationships: [];
       };
       users: {
         Row: {

@@ -15,8 +15,8 @@ export const routes = {
       path: '/inventory/items/preview',
       request: {
         query: z.object({
-          productId: z.number(),
-          categoryId: z.number(),
+          productId: z.coerce.number(),
+          categoryId: z.coerce.number(),
         }),
       },
       middleware: [supabaseMiddleware, authMiddleware],

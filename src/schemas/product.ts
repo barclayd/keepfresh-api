@@ -25,6 +25,7 @@ export const ProductSearchItemsSchema = z.array(ProductSearchItemSchema);
 
 export const FullProductSearchItemSchema = z.array(
   z.object({
+    id: z.number(),
     name: z.string().min(2),
     brand: z.string(),
     category: z.object({
@@ -33,10 +34,7 @@ export const FullProductSearchItemSchema = z.array(
       path: z.string(),
       recommendedStorageLocation: storageLocationFieldMapper.outputSchema,
     }),
-    amount: z
-      .number()
-      .nullable()
-      .transform((val) => val ?? undefined),
+    amount: z.number().optional(),
     unit: z.string().optional(),
     icon: z.string(),
   }),

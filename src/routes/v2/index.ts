@@ -41,7 +41,9 @@ export const createV2Routes = () => {
       const formattedProduct = objectToCamel(product);
 
       return {
-        ...formattedProduct,
+        id: formattedProduct.id,
+        name: formattedProduct.name,
+        brand: formattedProduct.brand,
         category: {
           id: formattedProduct.categoryId,
           name: formattedProduct.categoryName,
@@ -49,10 +51,11 @@ export const createV2Routes = () => {
           recommendedStorageLocation: formattedProduct.storageLocation,
         },
         icon: formattedProduct.categoryIcon,
-        ...(product.unit !== null && {
-          amount: formattedProduct.amount,
-          unit: product.unit,
-        }),
+        ...(formattedProduct.unit &&
+          formattedProduct.unit && {
+            amount: formattedProduct.amount,
+            unit: formattedProduct.unit,
+          }),
       };
     });
 

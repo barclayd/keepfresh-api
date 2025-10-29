@@ -23,7 +23,7 @@ export type ProductSearchItem = z.infer<typeof ProductSearchItemSchema>;
 
 export const ProductSearchItemsSchema = z.array(ProductSearchItemSchema);
 
-export const FullProductSearchItemSchema = z.array(
+export const FullProductSearchItemsSchema = z.array(
   z.object({
     id: z.number(),
     name: z.string().min(2),
@@ -39,3 +39,10 @@ export const FullProductSearchItemSchema = z.array(
     icon: z.string(),
   }),
 );
+
+export const PaginatedProductSearchSchema = z.object({
+  pagination: z.object({
+    hasNext: z.boolean(),
+  }),
+  results: FullProductSearchItemsSchema,
+});

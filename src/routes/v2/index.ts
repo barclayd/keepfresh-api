@@ -1,18 +1,17 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
-import { objectToCamel } from 'ts-case-convert';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/v2/api';
-import { FullProductSearchItemSchema } from '@/schemas/product';
+import { FullProductSearchItemsSchema } from '@/schemas/product';
 import type { HonoEnvironment } from '@/types/hono';
 
 export const createV2Routes = () => {
   const app = new OpenAPIHono<HonoEnvironment>();
 
   app.openapi(routes.products.list, async (c) => {
-    const { search: searchTerm, country } = c.req.valid('query');
+    const { search: searchTerm, country, page, limit } = c.req.valid('query');
 
-    console.log(searchTerm.length);
+    const offset = (page - 1) * limit;
 
     if (searchTerm.length < 2) {
       return c.json(
@@ -23,10 +22,14 @@ export const createV2Routes = () => {
       );
     }
 
-    const { data, error } = await c.get('supabase').rpc('search_products', {
-      search_query: searchTerm,
-      country_code: country,
-    });
+    const { data, error } = await c
+      .get('supabase')
+      .rpc('search_products_paginated', {
+        search_query: searchTerm,
+        country_code: country,
+        page_limit: limit,
+        page_offset: offset,
+      });
 
     if (error) {
       return c.json(
@@ -37,33 +40,34 @@ export const createV2Routes = () => {
       );
     }
 
-    const formattedProducts = data.map((product) => {
-      const formattedProduct = objectToCamel(product);
+    const formattedProducts = data.map((product) => ({
+      id: product.id,
+      name: product.name,
+      brand: product.brand,
+      category: {
+        id: product.category_id,
+        name: product.category_name,
+        path: getCategoryPath(product.category_path_display),
+        recommendedStorageLocation: product.storage_location,
+      },
+      icon: product.category_icon,
+      ...(product.unit &&
+        product.unit && {
+          amount: product.amount,
+          unit: product.unit,
+        }),
+    }));
 
-      return {
-        id: formattedProduct.id,
-        name: formattedProduct.name,
-        brand: formattedProduct.brand,
-        category: {
-          id: formattedProduct.categoryId,
-          name: formattedProduct.categoryName,
-          path: getCategoryPath(formattedProduct.categoryPath),
-          recommendedStorageLocation: formattedProduct.storageLocation,
-        },
-        icon: formattedProduct.categoryIcon,
-        ...(formattedProduct.unit &&
-          formattedProduct.unit && {
-            amount: formattedProduct.amount,
-            unit: formattedProduct.unit,
-          }),
-      };
-    });
-
-    const products = FullProductSearchItemSchema.parse(formattedProducts);
+    const results = FullProductSearchItemsSchema.parse(formattedProducts);
 
     return c.json(
       {
-        products,
+        pagination: {
+          hasNext: data[0]
+            ? Math.ceil(data[0].total_count / limit) > page
+            : false,
+        },
+        results,
       },
       200,
     );

@@ -268,6 +268,7 @@ export type Database = {
           barcode: string | null;
           brand: string;
           category_id: number;
+          category_path_display: string;
           countries: string[] | null;
           created_at: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
@@ -287,6 +288,7 @@ export type Database = {
           barcode?: string | null;
           brand: string;
           category_id: number;
+          category_path_display: string;
           countries?: string[] | null;
           created_at?: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
@@ -306,6 +308,7 @@ export type Database = {
           barcode?: string | null;
           brand?: string;
           category_id?: number;
+          category_path_display?: string;
           countries?: string[] | null;
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
@@ -443,9 +446,11 @@ export type Database = {
           recommended_storage_location: Database['public']['Enums']['storage_location'];
         }[];
       };
-      search_products: {
+      search_products_paginated: {
         Args: {
           country_code?: string;
+          page_limit?: number;
+          page_offset?: number;
           search_query: string;
           similarity_threshold?: number;
           use_fuzzy?: boolean;
@@ -456,11 +461,12 @@ export type Database = {
           category_icon: string;
           category_id: number;
           category_name: string;
-          category_path: string;
+          category_path_display: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id: number;
           name: string;
           storage_location: Database['public']['Enums']['storage_location'];
+          total_count: number;
           unit: Database['public']['Enums']['unit'];
         }[];
       };

@@ -274,6 +274,8 @@ export type Database = {
           id: number;
           lifespan_in_days: number | null;
           name: string;
+          search_text: string | null;
+          search_vector: unknown;
           source_id: number;
           source_ref: string;
           storage_location: Database['public']['Enums']['storage_location'];
@@ -291,6 +293,8 @@ export type Database = {
           id?: number;
           lifespan_in_days?: number | null;
           name: string;
+          search_text?: string | null;
+          search_vector?: unknown;
           source_id: number;
           source_ref: string;
           storage_location: Database['public']['Enums']['storage_location'];
@@ -308,6 +312,8 @@ export type Database = {
           id?: number;
           lifespan_in_days?: number | null;
           name?: string;
+          search_text?: string | null;
+          search_vector?: unknown;
           source_id?: number;
           source_ref?: string;
           storage_location?: Database['public']['Enums']['storage_location'];
@@ -437,6 +443,33 @@ export type Database = {
           recommended_storage_location: Database['public']['Enums']['storage_location'];
         }[];
       };
+      search_products:
+        | {
+            Args: {
+              filter_country?: string;
+              search_query: string;
+              similarity_threshold?: number;
+              use_fuzzy?: boolean;
+            };
+            Returns: Json[];
+          }
+        | {
+            Args: {
+              search_query: string;
+              similarity_threshold?: number;
+              use_fuzzy?: boolean;
+            };
+            Returns: {
+              brand: string;
+              category_id: number;
+              expiry_type: Database['public']['Enums']['expiry_type'];
+              id: number;
+              lifespan_in_days: number;
+              name: string;
+              relevance_score: number;
+              storage_location: Database['public']['Enums']['storage_location'];
+            }[];
+          };
     };
     Enums: {
       expiry_type: 'best_before' | 'use_by' | 'long_life';

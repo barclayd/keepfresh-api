@@ -443,33 +443,27 @@ export type Database = {
           recommended_storage_location: Database['public']['Enums']['storage_location'];
         }[];
       };
-      search_products:
-        | {
-            Args: {
-              filter_country?: string;
-              search_query: string;
-              similarity_threshold?: number;
-              use_fuzzy?: boolean;
-            };
-            Returns: Json[];
-          }
-        | {
-            Args: {
-              search_query: string;
-              similarity_threshold?: number;
-              use_fuzzy?: boolean;
-            };
-            Returns: {
-              brand: string;
-              category_id: number;
-              expiry_type: Database['public']['Enums']['expiry_type'];
-              id: number;
-              lifespan_in_days: number;
-              name: string;
-              relevance_score: number;
-              storage_location: Database['public']['Enums']['storage_location'];
-            }[];
-          };
+      search_products: {
+        Args: {
+          country_code?: string;
+          search_query: string;
+          similarity_threshold?: number;
+          use_fuzzy?: boolean;
+        };
+        Returns: {
+          amount: number;
+          brand: string;
+          category_icon: string;
+          category_id: number;
+          category_name: string;
+          category_path: string;
+          expiry_type: Database['public']['Enums']['expiry_type'];
+          id: number;
+          name: string;
+          storage_location: Database['public']['Enums']['storage_location'];
+          unit: Database['public']['Enums']['unit'];
+        }[];
+      };
     };
     Enums: {
       expiry_type: 'best_before' | 'use_by' | 'long_life';

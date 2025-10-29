@@ -3,7 +3,7 @@ import { Scalar } from '@scalar/hono-api-reference';
 import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { getProductByBarcode, search } from '@/clients/open-food-facts';
 import { getCategoryPath } from '@/helpers/category';
-import { routes } from '@/routes/api';
+import { routes } from '@/routes/v1/api';
 import type { Genmoji } from '@/schemas/genmoji';
 import {
   InventoryItemSuggestions,

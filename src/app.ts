@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
-import { createV1Routes } from '@/routes/v1';
-import { createV2Routes } from '@/routes/v2';
+import { createV1Routes } from '@/routes/v1/api';
+import { createV2Routes } from '@/routes/v2/api';
 import type { HonoEnvironment } from '@/types/hono';
 
 const app = new Hono<HonoEnvironment>();

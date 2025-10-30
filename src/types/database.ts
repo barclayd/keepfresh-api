@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           created_at: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
-          icon: string | null;
+          icon: string;
           id: number;
           name: string;
           path: unknown;
@@ -34,7 +34,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
-          icon?: string | null;
+          icon: string;
           id?: number;
           name: string;
           path: unknown;
@@ -50,7 +50,7 @@ export type Database = {
         Update: {
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
-          icon?: string | null;
+          icon?: string;
           id?: number;
           name?: string;
           path?: unknown;
@@ -453,7 +453,6 @@ export type Database = {
           page_offset?: number;
           search_query: string;
           similarity_threshold?: number;
-          use_fuzzy?: boolean;
         };
         Returns: {
           amount: number;

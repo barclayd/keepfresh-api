@@ -4,7 +4,10 @@ import { objectToSnake } from 'ts-case-convert';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/v2/routes';
 import { InventoryItemSuggestions } from '@/schemas/inventory';
-import { FullProductSearchItemsSchema } from '@/schemas/product';
+import {
+  RefinedProductSearchItemSchema,
+  RefinedProductSearchItemsSchema,
+} from '@/schemas/product';
 import type { HonoEnvironment } from '@/types/hono';
 import { calculateDaysBetween } from '@/utils/date';
 import {
@@ -314,13 +317,13 @@ export const createV2Routes = () => {
       },
       icon: product.category_icon,
       ...(product.unit &&
-        product.unit && {
+        product.amount && {
           amount: product.amount,
           unit: product.unit,
         }),
     }));
 
-    const results = FullProductSearchItemsSchema.parse(formattedProducts);
+    const results = RefinedProductSearchItemsSchema.parse(formattedProducts);
 
     return c.json(
       {
@@ -333,6 +336,59 @@ export const createV2Routes = () => {
       },
       200,
     );
+  });
+
+  app.openapi(routes.products.barcode, async (c) => {
+    const { barcode } = c.req.valid('param');
+
+    const { data, error } = await c
+      .get('supabase')
+      .from('products')
+      .select(`
+        id,
+        name,
+        brand,
+        expiry_type,
+        storage_location,
+        amount,
+        unit,
+        category_id,
+        category_path_display,
+        category:categories (
+          icon
+        )
+      `)
+      .eq('barcode', barcode)
+      .single();
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product with barcode=${barcode}. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const product = RefinedProductSearchItemSchema.parse({
+      id: data.id,
+      name: data.name,
+      brand: data.brand,
+      category: {
+        id: data.category_id,
+        path: getCategoryPath(data.category_path_display),
+        name: data.category_path_display.split('.').pop(),
+        recommendedStorageLocation: data.storage_location,
+      },
+      icon: data.category.icon,
+      ...(data.unit &&
+        data.amount && {
+          amount: data.amount,
+          unit: data.unit,
+        }),
+    });
+
+    return c.json(product, 200);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

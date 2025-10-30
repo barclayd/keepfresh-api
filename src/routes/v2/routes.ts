@@ -7,7 +7,10 @@ import {
   InventoryItemSuggestions,
   RefinedInventoryItemInput,
 } from '@/schemas/inventory';
-import { PaginatedProductSearchSchema } from '@/schemas/product';
+import {
+  PaginatedProductSearchSchema,
+  RefinedProductSearchItemSchema,
+} from '@/schemas/product';
 
 export const routes = {
   inventory: {
@@ -138,6 +141,39 @@ export const routes = {
           content: {
             'application/json': {
               schema: PaginatedProductSearchSchema,
+            },
+          },
+          description: 'Success response from KeepFresh API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    barcode: createRoute({
+      method: 'get',
+      path: '/products/barcode/{barcode}',
+      request: {
+        params: z.object({
+          barcode: z.string(),
+        }),
+      },
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: RefinedProductSearchItemSchema,
             },
           },
           description: 'Success response from KeepFresh API',

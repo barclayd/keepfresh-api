@@ -1,5 +1,6 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
+import { objectToSnake } from 'ts-case-convert';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/v2/routes';
 import { InventoryItemSuggestions } from '@/schemas/inventory';
@@ -15,6 +16,50 @@ import {
 
 export const createV2Routes = () => {
   const app = new OpenAPIHono<HonoEnvironment>();
+
+  app.openapi(routes.inventory.add, async (c) => {
+    const { item, productId, quantity } = c.req.valid('json');
+
+    const userId = c.get('userId');
+
+    const inventoryItemsToInsert = Array.from({ length: quantity }, () => ({
+      ...objectToSnake(item),
+      product_id: productId,
+      user_id: userId,
+      ...(item.consumptionPrediction && {
+        consumption_prediction_changed_at: new Date().toISOString(),
+      }),
+    }));
+
+    const inventoryItemsResponse = await c
+      .get('supabase')
+      .from('inventory_items')
+      .insert(inventoryItemsToInsert)
+      .select('id');
+
+    if (inventoryItemsResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred creating inventory item(s). Error=${JSON.stringify(inventoryItemsResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(
+      {
+        ...(quantity === 1 && inventoryItemsResponse.data[0]
+          ? { inventoryItemId: inventoryItemsResponse.data[0].id }
+          : {
+              inventoryItemIds: inventoryItemsResponse.data.map(
+                (item) => item.id,
+              ),
+            }),
+        count: inventoryItemsResponse.data.length,
+      },
+      200,
+    );
+  });
 
   app.openapi(routes.inventory.preview, async (c) => {
     const { productId, categoryId } = c.req.valid('query');

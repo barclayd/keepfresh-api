@@ -18,7 +18,7 @@ export type Database = {
         Row: {
           created_at: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
-          icon: string | null;
+          icon: string;
           id: number;
           name: string;
           path: unknown;
@@ -34,7 +34,7 @@ export type Database = {
         Insert: {
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
-          icon?: string | null;
+          icon: string;
           id?: number;
           name: string;
           path: unknown;
@@ -50,7 +50,7 @@ export type Database = {
         Update: {
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
-          icon?: string | null;
+          icon?: string;
           id?: number;
           name?: string;
           path?: unknown;
@@ -268,12 +268,15 @@ export type Database = {
           barcode: string | null;
           brand: string;
           category_id: number;
+          category_path_display: string;
           countries: string[] | null;
           created_at: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id: number;
           lifespan_in_days: number | null;
           name: string;
+          search_text: string | null;
+          search_vector: unknown;
           source_id: number;
           source_ref: string;
           storage_location: Database['public']['Enums']['storage_location'];
@@ -285,12 +288,15 @@ export type Database = {
           barcode?: string | null;
           brand: string;
           category_id: number;
+          category_path_display: string;
           countries?: string[] | null;
           created_at?: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
           id?: number;
           lifespan_in_days?: number | null;
           name: string;
+          search_text?: string | null;
+          search_vector?: unknown;
           source_id: number;
           source_ref: string;
           storage_location: Database['public']['Enums']['storage_location'];
@@ -302,12 +308,15 @@ export type Database = {
           barcode?: string | null;
           brand?: string;
           category_id?: number;
+          category_path_display?: string;
           countries?: string[] | null;
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
           id?: number;
           lifespan_in_days?: number | null;
           name?: string;
+          search_text?: string | null;
+          search_vector?: unknown;
           source_id?: number;
           source_ref?: string;
           storage_location?: Database['public']['Enums']['storage_location'];
@@ -435,6 +444,29 @@ export type Database = {
           path: unknown;
           path_display: string;
           recommended_storage_location: Database['public']['Enums']['storage_location'];
+        }[];
+      };
+      search_products_paginated: {
+        Args: {
+          country_code?: string;
+          page_limit?: number;
+          page_offset?: number;
+          search_query: string;
+          similarity_threshold?: number;
+        };
+        Returns: {
+          amount: number;
+          brand: string;
+          category_icon: string;
+          category_id: number;
+          category_name: string;
+          category_path_display: string;
+          expiry_type: Database['public']['Enums']['expiry_type'];
+          id: number;
+          name: string;
+          storage_location: Database['public']['Enums']['storage_location'];
+          total_count: number;
+          unit: Database['public']['Enums']['unit'];
         }[];
       };
     };

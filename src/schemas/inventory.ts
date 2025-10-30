@@ -32,6 +32,18 @@ export const InventoryItemInput = z.object({
   quantity: z.number().optional(),
 });
 
+export const RefinedInventoryItemInput = z.object({
+  item: z.object({
+    expiryDate: z.iso.datetime().optional(),
+    storageLocation: storageLocationFieldMapper.inputSchema,
+    status: z.enum(InventoryItemStatus),
+    expiryType: expiryTypeFieldMapper.inputSchema,
+    consumptionPrediction: z.int().optional(),
+  }),
+  productId: z.number(),
+  quantity: z.number().default(1),
+});
+
 export const UpdateInventoryItemInput = z
   .object({
     status: z.enum(InventoryItemStatus).optional(),

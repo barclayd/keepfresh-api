@@ -3,7 +3,7 @@ import { Scalar } from '@scalar/hono-api-reference';
 import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { getProductByBarcode, search } from '@/clients/open-food-facts';
 import { getCategoryPath } from '@/helpers/category';
-import { routes } from '@/routes/api';
+import { routes } from '@/routes/v1/routes';
 import type { Genmoji } from '@/schemas/genmoji';
 import {
   InventoryItemSuggestions,
@@ -91,6 +91,7 @@ export const createV1Routes = () => {
           ...objectToSnake(inventoryItemInput.product),
           source_ref: inventoryItemInput.product.sourceRef,
           source_id: inventoryItemInput.product.sourceId,
+          category_path_display: '',
         },
         {
           onConflict: 'source_id,source_ref',
@@ -242,6 +243,7 @@ export const createV1Routes = () => {
           ...objectToSnake(product),
           expiry_type: category.expiry_type,
           storage_location: category.recommended_storage_location,
+          category_path_display: '',
         },
         {
           onConflict: 'source_id,source_ref',
@@ -781,6 +783,7 @@ export const createV1Routes = () => {
           ...objectToSnake(product),
           source_ref: product.sourceRef,
           source_id: product.sourceId,
+          category_path_display: '',
         },
         {
           onConflict: 'source_id,source_ref',

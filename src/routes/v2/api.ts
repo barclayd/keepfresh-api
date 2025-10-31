@@ -80,7 +80,7 @@ export const createV2Routes = () => {
     if (response.error || !response.data) {
       return c.json(
         {
-          error: `Test from API! Error occurred deleting inventory item. Error=${JSON.stringify(response.error)}`,
+          error: `Error occurred deleting inventory item. Error=${JSON.stringify(response.error)}`,
         },
         400,
       );

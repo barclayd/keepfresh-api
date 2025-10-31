@@ -5,7 +5,6 @@
   "private": true,
   "scripts": {
     "dev": "bun --watch run ./src/app.ts",
-    "build": "bunx wrangler deploy src/app.ts",
     "lint": "bunx biome check .",
     "lint:fix": "bunx biome check --write .",
     "types": "bunx tsgo --noEmit",

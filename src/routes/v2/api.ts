@@ -77,7 +77,7 @@ export const createV2Routes = () => {
       .eq('user_id', userId)
       .single();
 
-    if (response.error || !response.data) {
+    if (response.error) {
       return c.json(
         {
           error: `Error occurred deleting inventory item. Error=${JSON.stringify(response.error)}`,

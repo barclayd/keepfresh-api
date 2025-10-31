@@ -74,12 +74,13 @@ export const createV2Routes = () => {
       .from('inventory_items')
       .delete()
       .eq('id', inventoryItemId)
-      .eq('user_id', userId);
+      .eq('user_id', userId)
+      .single();
 
-    if (response.error) {
+    if (response.error || !response.data) {
       return c.json(
         {
-          error: `Error occurred creating inventory item(s). Error=${JSON.stringify(response.error)}`,
+          error: `Error occurred deleting inventory item. Error=${JSON.stringify(response.error)}`,
         },
         400,
       );

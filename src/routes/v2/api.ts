@@ -64,6 +64,30 @@ export const createV2Routes = () => {
     );
   });
 
+  app.openapi(routes.inventory.delete, async (c) => {
+    const { inventoryItemId } = c.req.valid('param');
+
+    const userId = c.get('userId');
+
+    const response = await c
+      .get('supabase')
+      .from('inventory_items')
+      .delete()
+      .eq('id', inventoryItemId)
+      .eq('user_id', userId);
+
+    if (response.error) {
+      return c.json(
+        {
+          error: `Error occurred creating inventory item(s). Error=${JSON.stringify(response.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.body(null, 204);
+  });
+
   app.openapi(routes.inventory.preview, async (c) => {
     const { productId, categoryId } = c.req.valid('query');
 

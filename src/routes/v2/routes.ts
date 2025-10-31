@@ -122,6 +122,29 @@ export const routes = {
         },
       ],
     }),
+    delete: createRoute({
+      method: 'delete',
+      path: '/inventory/items/{inventoryItemId}',
+      request: {
+        params: z.object({
+          inventoryItemId: z.coerce.number(),
+        }),
+      },
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        204: {
+          description: 'Successfully deleted inventory item',
+        },
+        400: {
+          description: 'Error occurred when deleting inventory item',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
   },
   products: {
     list: createRoute({

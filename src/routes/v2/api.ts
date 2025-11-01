@@ -75,6 +75,8 @@ export const createV2Routes = () => {
       expiryDate,
     } = c.req.valid('json');
 
+    const userId = c.get('userId');
+
     const { error } = await c
       .get('supabase')
       .from('inventory_items')
@@ -106,7 +108,8 @@ export const createV2Routes = () => {
           percentage_remaining: percentageRemaining,
         }),
       })
-      .eq('id', inventoryItemId);
+      .eq('id', inventoryItemId)
+      .eq('user_id', userId);
     // send async event to Cloudflare Queue
 
     if (error) {

@@ -64,6 +64,66 @@ export const createV2Routes = () => {
     );
   });
 
+  app.openapi(routes.inventory.update, async (c) => {
+    const { inventoryItemId } = c.req.valid('param');
+
+    const {
+      status,
+      storageLocation,
+      percentageRemaining,
+      consumptionPrediction,
+      expiryDate,
+    } = c.req.valid('json');
+
+    const userId = c.get('userId');
+
+    const { error } = await c
+      .get('supabase')
+      .from('inventory_items')
+      .update({
+        ...(storageLocation && {
+          storage_location: storageLocation,
+          location_changed_at: new Date().toISOString(),
+        }),
+        ...(expiryDate && {
+          expiry_date: expiryDate,
+        }),
+        ...(status && { status }),
+        ...(status === 'opened' && {
+          opened_at: new Date().toISOString(),
+        }),
+        ...(consumptionPrediction && {
+          consumption_prediction: consumptionPrediction,
+          consumption_prediction_changed_at: new Date().toISOString(),
+        }),
+        ...(status === 'discarded' && {
+          discarded_at: new Date().toISOString(),
+          ...(percentageRemaining !== undefined && {
+            percentage_remaining: percentageRemaining,
+            discarded_at: new Date().toISOString(),
+          }),
+        }),
+        ...(status === 'consumed' && {
+          consumed_at: new Date().toISOString(),
+          percentage_remaining: percentageRemaining,
+        }),
+      })
+      .eq('id', inventoryItemId)
+      .eq('user_id', userId);
+    // send async event to Cloudflare Queue
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error occurred updating inventory item. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.body(null, 204);
+  });
+
   app.openapi(routes.inventory.delete, async (c) => {
     const { inventoryItemId } = c.req.valid('param');
 

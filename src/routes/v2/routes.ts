@@ -11,6 +11,8 @@ import {
   PaginatedProductSearchSchema,
   RefinedProductSearchItemSchema,
 } from '@/schemas/product';
+import { InventoryItemStatus } from '@/types/category';
+import { storageLocationFieldMapper } from '@/utils/field-mapper';
 
 export const routes = {
   inventory: {
@@ -137,6 +139,67 @@ export const routes = {
         },
         400: {
           description: 'Error occurred when deleting inventory item',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    update: createRoute({
+      method: 'patch',
+      path: '/inventory/items/{inventoryItemId}',
+      request: {
+        params: z.object({
+          inventoryItemId: z.coerce.number(),
+        }),
+        body: {
+          content: {
+            'application/json': {
+              schema: z
+                .object({
+                  status: z.enum(InventoryItemStatus).optional(),
+                  storageLocation:
+                    storageLocationFieldMapper.inputSchema.optional(),
+                  percentageRemaining: z.int().optional(),
+                  consumptionPrediction: z.int().optional(),
+                  expiryDate: z.iso.datetime().optional(),
+                })
+                .refine(
+                  (data) =>
+                    data.status !== undefined ||
+                    data.storageLocation !== undefined ||
+                    data.expiryDate !== undefined,
+                  {
+                    message:
+                      'Either status, storageLocation or expiryDate must be provided',
+                  },
+                ),
+            },
+          },
+        },
+      },
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        204: {
+          description: 'Successfully updated inventory item',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+        401: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['401'],
+            },
+          },
+          description: 'Authorization error response from Grocery Item API',
         },
       },
       security: [

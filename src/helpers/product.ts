@@ -42,4 +42,5 @@ export const Units: Array<Database['public']['Enums']['unit']> = [
   'pt',
   'qt',
   'gal',
+  'unit',
 ];

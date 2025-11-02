@@ -714,10 +714,12 @@ export const createV1Routes = () => {
   });
 
   app.openapi(routes.products.random, async (c) => {
-    const productIds = [6, 11, 12, 18, 20, 23, 54, 112];
+    const productIds = [
+      65316, 18476, 81342, 63519, 151471, 151309, 52617, 36007, 7278, 153250,
+    ];
 
     const randomProductId =
-      productIds[Math.floor(Math.random() * productIds.length)] ?? 11;
+      productIds[Math.floor(Math.random() * productIds.length)] ?? 65316;
 
     const { data, error } = await c
       .get('supabase')

@@ -288,7 +288,7 @@ export type Database = {
           barcode?: string | null;
           brand: string;
           category_id: number;
-          category_path_display: string;
+          category_path_display?: string | null;
           countries?: string[] | null;
           created_at?: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
@@ -486,7 +486,8 @@ export type Database = {
         | 'fl_oz'
         | 'pt'
         | 'qt'
-        | 'gal';
+        | 'gal'
+        | 'unit';
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -633,6 +634,7 @@ export const Constants = {
         'pt',
         'qt',
         'gal',
+        'unit',
       ],
     },
   },

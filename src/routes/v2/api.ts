@@ -10,6 +10,7 @@ import {
 } from '@/schemas/product';
 import type { HonoEnvironment } from '@/types/hono';
 import { calculateDaysBetween } from '@/utils/date';
+import logger from '@/utils/logger';
 import {
   calculateMean,
   calculateMedian,
@@ -359,9 +360,19 @@ export const createV2Routes = () => {
   });
 
   app.openapi(routes.products.list, async (c) => {
+    const requestStartTime = performance.now();
+    const requestId = c.get('requestId');
+    const userId = c.get('userId');
+    const log = logger.child({ requestId, userId, endpoint: '/v2/products' });
+
     const { search: searchTerm, country, page, limit } = c.req.valid('query');
 
     const offset = (page - 1) * limit;
+
+    log.info(
+      { searchTerm, country, page, limit },
+      'Products search request started',
+    );
 
     if (searchTerm.length < 2) {
       return c.json(
@@ -372,6 +383,7 @@ export const createV2Routes = () => {
       );
     }
 
+    const dbStartTime = performance.now();
     const { data, error } = await c
       .get('supabase')
       .rpc('search_products_paginated', {
@@ -380,8 +392,15 @@ export const createV2Routes = () => {
         page_limit: limit,
         page_offset: offset,
       });
+    const dbDuration = performance.now() - dbStartTime;
+
+    log.info(
+      { dbDuration, rowCount: data?.length || 0 },
+      'Database RPC completed',
+    );
 
     if (error) {
+      log.error({ error, dbDuration }, 'Database RPC error');
       return c.json(
         {
           error: `Error occurred during search. Error=${JSON.stringify(error)}`,
@@ -390,6 +409,7 @@ export const createV2Routes = () => {
       );
     }
 
+    const formattingStartTime = performance.now();
     const formattedProducts = data.map((product) => ({
       id: product.id,
       name: product.name,
@@ -409,6 +429,23 @@ export const createV2Routes = () => {
     }));
 
     const results = RefinedProductSearchItemsSchema.parse(formattedProducts);
+    const formattingDuration = performance.now() - formattingStartTime;
+
+    log.info({ formattingDuration }, 'Data formatting completed');
+
+    const totalDuration = performance.now() - requestStartTime;
+    const responseSize = JSON.stringify(results).length;
+
+    log.info(
+      {
+        totalDuration,
+        dbDuration,
+        formattingDuration,
+        rowCount: results.length,
+        responseSize,
+      },
+      'Products search request completed',
+    );
 
     return c.json(
       {

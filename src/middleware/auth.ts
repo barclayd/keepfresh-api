@@ -1,8 +1,14 @@
 import { createMiddleware } from 'hono/factory';
 import type { HonoEnvironment } from '@/types/hono';
+import { verifySupabaseJWT } from '@/utils/jwt';
+import logger from '@/utils/logger';
 
 export const authMiddleware = createMiddleware<HonoEnvironment>(
   async (c, next) => {
+    const authStartTime = performance.now();
+    const requestId = crypto.randomUUID();
+    const log = logger.child({ requestId, middleware: 'auth' });
+
     const authHeader = c.req.header('Authorization');
 
     const jwt = authHeader?.startsWith('Bearer ')
@@ -18,9 +24,28 @@ export const authMiddleware = createMiddleware<HonoEnvironment>(
       );
     }
 
-    const { data, error } = await c.get('supabase').auth.getUser(jwt);
+    try {
+      const verifyStartTime = performance.now();
+      const payload = await verifySupabaseJWT(jwt);
+      const verifyDuration = performance.now() - verifyStartTime;
 
-    if (error || !data.user?.id) {
+      log.info({ verifyDuration }, 'Local JWT verification completed');
+
+      c.set('userId', payload.sub);
+      c.set('requestId', requestId);
+
+      const totalAuthDuration = performance.now() - authStartTime;
+      log.info(
+        { totalAuthDuration, userId: payload.sub, method: 'local-jwt' },
+        'Auth middleware completed (local validation)',
+      );
+
+      await next();
+    } catch (error) {
+      log.warn(
+        { error: error instanceof Error ? error.message : error },
+        'JWT verification failed',
+      );
       return c.json(
         {
           error: `Unauthorized`,
@@ -28,14 +53,5 @@ export const authMiddleware = createMiddleware<HonoEnvironment>(
         401,
       );
     }
-
-    await c
-      .get('supabase')
-      .from('users')
-      .upsert({ id: data.user.id }, { onConflict: 'id' });
-
-    c.set('userId', data.user.id);
-
-    await next();
   },
 );

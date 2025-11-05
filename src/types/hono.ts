@@ -8,6 +8,7 @@ export type HonoEnvironment = {
     environment: Environment;
     supabase: SupabaseClient<Database>;
     userId: string;
+    requestId: string;
   };
   Bindings: Bindings;
 };

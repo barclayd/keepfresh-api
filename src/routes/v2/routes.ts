@@ -279,5 +279,33 @@ export const routes = {
         },
       ],
     }),
+    random: createRoute({
+      method: 'get',
+      path: '/products/random',
+      middleware: [supabaseMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: RefinedProductSearchItemSchema,
+            },
+          },
+          description: 'Success response from product/random endpoint',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
   },
 };

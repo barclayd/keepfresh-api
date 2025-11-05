@@ -12,6 +12,10 @@
     {
       "binding": "keepfresh_genmoji",
       "id": "922ac7032e1e403fb76f591aea4352da"
+    },
+    {
+      "binding": "keepfresh_categories",
+      "id": "3524951d506248b6bd20062fbd34ab93"
     }
   ]
 }

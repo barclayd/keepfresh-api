@@ -476,6 +476,64 @@ export const createV2Routes = () => {
     return c.json(product, 200);
   });
 
+  app.openapi(routes.products.random, async (c) => {
+    const productIds = [
+      65316, 18476, 81342, 63519, 151471, 151309, 52617, 36007, 7278, 153250,
+    ];
+
+    const randomProductId =
+      productIds[Math.floor(Math.random() * productIds.length)] ?? 65316;
+
+    const { data, error } = await c
+      .get('supabase')
+      .from('products')
+      .select(`
+        id,
+        name,
+        brand,
+        expiry_type,
+        storage_location,
+        amount,
+        unit,
+        category_id,
+        category_path_display,
+        category:categories (
+          icon
+        )
+      `)
+      .eq('id', randomProductId)
+      .single();
+
+    if (error || !data) {
+      return c.json(
+        {
+          error: `Error occurred retrieving random product. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const product = RefinedProductSearchItemSchema.parse({
+      id: data.id,
+      name: data.name,
+      brand: data.brand,
+      category: {
+        id: data.category_id,
+        path: getCategoryPath(data.category_path_display),
+        name: data.category_path_display.split('.').pop(),
+        recommendedStorageLocation: data.storage_location,
+      },
+      icon: data.category.icon,
+      ...(data.unit &&
+        data.amount && {
+          amount: data.amount,
+          unit: data.unit,
+        }),
+    });
+
+    return c.json(product, 200);
+  });
+
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {
     type: 'http',
     scheme: 'bearer',

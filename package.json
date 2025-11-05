@@ -8,14 +8,14 @@
     "lint": "bunx biome check .",
     "lint:fix": "bunx biome check --write .",
     "types": "bunx tsgo --noEmit",
-    "types:db": "bunx supabase gen types typescript --project-id ajvsqwbowwilmcqyynye > ./src/types/database.ts"
+    "types:db": "bunx supabase gen types typescript --project-id ajvsqwbowwilmcqyynye > ./src/types/database.ts",
+    "upload": "wrangler kv:bulk put --namespace-id=3524951d506248b6bd20062fbd34ab93 categories-kv-minimal.json"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^2.0.40",
+    "@anthropic-ai/sdk": "^0.68.0",
     "@hono/zod-openapi": "^1.1.4",
     "@scalar/hono-api-reference": "^0.9.23",
     "@supabase/supabase-js": "^2.78.0",
-    "ai": "^5.0.86",
     "hono": "^4.10.4",
     "jose": "^6.1.0",
     "pino": "^10.1.0",

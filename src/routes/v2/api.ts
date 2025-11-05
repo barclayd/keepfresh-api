@@ -1,6 +1,7 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
 import { objectToSnake } from 'ts-case-convert';
+import { getRefinedProductByBarcode } from '@/clients/open-food-facts';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/v2/routes';
 import { InventoryItemSuggestions } from '@/schemas/inventory';
@@ -463,8 +464,9 @@ export const createV2Routes = () => {
   app.openapi(routes.products.barcode, async (c) => {
     const { barcode } = c.req.valid('param');
 
-    const { data, error } = await c
-      .get('supabase')
+    const supabase = c.get('supabase');
+
+    const { data, error } = await supabase
       .from('products')
       .select(`
         id,
@@ -483,13 +485,23 @@ export const createV2Routes = () => {
       .eq('barcode', barcode)
       .single();
 
-    if (error) {
-      return c.json(
-        {
-          error: `Error occurred retrieving product with barcode=${barcode}. Error=${JSON.stringify(error)}`,
-        },
-        400,
+    if (error || !data) {
+      const dynamicallyCreatedProduct = await getRefinedProductByBarcode(
+        barcode,
+        supabase,
+        c.env.keepfresh_categories,
       );
+
+      if (!dynamicallyCreatedProduct) {
+        return c.json(
+          {
+            error: `Error occurred retrieving product with barcode=${barcode}. Error=${JSON.stringify(error)}`,
+          },
+          400,
+        );
+      }
+
+      return c.json(dynamicallyCreatedProduct, 200);
     }
 
     const product = RefinedProductSearchItemSchema.parse({

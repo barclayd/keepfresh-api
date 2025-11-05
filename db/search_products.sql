@@ -25,11 +25,20 @@ DECLARE
 total_results BIGINT;
   search_lower TEXT;
   word_count INT;
+  candidate_limit INT;
 BEGIN
   PERFORM set_limit(similarity_threshold::real);
 
   search_lower := LOWER(search_query);
   word_count := array_length(string_to_array(search_lower, ' '), 1);
+
+  -- Calculate dynamic limit based on current page needs
+  -- Formula: page_limit + page_offset + buffer
+  -- Page 1 (offset=0): 20 + 0 + 5 = 25 candidates (fast!)
+  -- Page 2 (offset=20): 20 + 20 + 5 = 45 candidates
+  -- Page 3 (offset=40): 20 + 40 + 5 = 65 candidates
+  -- This optimizes for the common case (page 1) while supporting pagination
+  candidate_limit := page_limit + page_offset + 5;
 
 SELECT COUNT(DISTINCT (p.name, p.brand)) INTO total_results
 FROM products p
@@ -57,12 +66,29 @@ RETURN QUERY
       p.search_text,
       p.amount,
       p.unit,
+      c.name AS category_name,
+      c.icon AS category_icon,
+      c.path_display AS category_path_display,
       (
+        -- ✅ TIER 0: EXACT CATEGORY MATCH (Highest priority for single-word searches)
+        -- If user searches "milk", products in "Milk" category should dominate
+        CASE
+          WHEN word_count = 1 AND LOWER(c.name) = search_lower
+          THEN 50000  -- Massively boost exact category matches
+          ELSE 0
+        END +
+
+        -- TIER 1: EXACT PRODUCT NAME MATCH
         CASE WHEN p.name_lower = search_lower THEN 5000 ELSE 0 END +
+
+        -- TIER 2: PREFIX MATCH
         CASE WHEN p.name_lower LIKE search_lower || '%' THEN 500 ELSE 0 END +
+
+        -- TIER 3: FULL-TEXT SEARCH RANKING
         ts_rank_cd('{0.001, 0.01, 0.3, 1.0}', p.search_vector, websearch_to_tsquery('english', search_query)) * 100
       ) AS quick_score
     FROM products p
+    INNER JOIN categories c ON p.category_id = c.id  -- ✅ ADDED: Join with categories
     WHERE
       (country_code IS NULL OR country_code = ANY(p.countries) OR 'WW' = ANY(p.countries))
       AND (
@@ -70,7 +96,7 @@ RETURN QUERY
         OR p.name_lower % search_lower
       )
     ORDER BY quick_score DESC
-    LIMIT 500
+    LIMIT candidate_limit
   ),
   final_scored AS (
     SELECT DISTINCT ON (qs.name, qs.brand)
@@ -80,18 +106,22 @@ RETURN QUERY
       qs.storage_location,
       qs.expiry_type,
       qs.category_id,
-      c.name AS category_name,
-      c.icon AS category_icon,
-      c.path_display AS category_path_display,
+      qs.category_name,
+      qs.category_icon,
+      qs.category_path_display,
       qs.amount,
       qs.unit,
       (
+        -- Note: Category bonus already applied in quick_score
+        -- This final_score focuses on detailed similarity matching
+
         -- ═══════════════════════════════════════════════════════════
-        -- TIER 0: CATEGORY MATCH (Only for single-word searches)
+        -- TIER 0: EXACT CATEGORY MATCH (Already applied in quick_score)
         -- ═══════════════════════════════════════════════════════════
+        -- Applying same massive bonus here to maintain ranking through final sort
         CASE
-          WHEN word_count = 1 AND LOWER(c.name) = search_lower
-          THEN 5000  -- "milk" searching in "Milk" category
+          WHEN word_count = 1 AND LOWER(qs.category_name) = search_lower
+          THEN 50000  -- Match the quick_score bonus
           ELSE 0
         END +
 
@@ -141,7 +171,6 @@ RETURN QUERY
         similarity(qs.search_text, search_lower) * 0.1
       ) AS final_score
     FROM quick_scored qs
-    INNER JOIN categories c ON qs.category_id = c.id
     ORDER BY
       qs.name,
       qs.brand,

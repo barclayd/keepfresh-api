@@ -1,15 +1,21 @@
+import type { KVNamespace } from '@cloudflare/workers-types';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { objectToCamel } from 'ts-case-convert';
+import { getCategoryIdForOpenFoodFactsItem } from '@/clients/anthropic';
 import { formatBrand } from '@/helpers/brand';
 import { formatName, getCategoryPath } from '@/helpers/category';
 import { getUniqueProducts } from '@/helpers/product';
 import { parseQuantity } from '@/helpers/quantity';
 import { toTitleCase } from '@/helpers/toTitleCase';
+import type { KVCategory } from '@/schemas/kv-category';
 import {
   OpenFoodFactsProductByBarcodeSchema,
   OpenFoodFactsSearchSchema,
 } from '@/schemas/open-food-facts';
-import type { ProductSearchItem } from '@/schemas/product';
+import type {
+  ProductSearchItem,
+  RefinedProductSearchItem,
+} from '@/schemas/product';
 import type { Database } from '@/types/database';
 import { storageLocationFieldMapper } from '@/utils/field-mapper';
 
@@ -164,5 +170,97 @@ export const getProductByBarcode = async (
       id: 1,
       ref: product.code,
     },
+  };
+};
+
+export const getRefinedProductByBarcode = async (
+  barcode: string,
+  supabase: SupabaseClient<Database>,
+  kv: KVNamespace,
+): Promise<RefinedProductSearchItem | undefined> => {
+  const openFoodFactsResponse = await fetch(
+    `https://world.openfoodfacts.org/api/v2/product/${barcode}?fields=code,product_name,brands,categories_tags_en,quantity`,
+    {
+      headers,
+    },
+  );
+
+  const openFoodFactsData = await openFoodFactsResponse.json();
+
+  const { product } = OpenFoodFactsProductByBarcodeSchema.parse(
+    objectToCamel(openFoodFactsData as object),
+  );
+
+  if (!product.brands || !product.productName) {
+    return;
+  }
+
+  const quantity = parseQuantity(product.quantity);
+
+  const productName = toTitleCase(product.productName);
+
+  const categoryId = await getCategoryIdForOpenFoodFactsItem({
+    productName,
+    brand: product.brands,
+    userCategories: product.categoriesTagsEn ?? [],
+  });
+
+  if (!categoryId) {
+    return;
+  }
+
+  const kvCategory = await kv.get<KVCategory>(categoryId, 'json');
+
+  if (!kvCategory) {
+    return;
+  }
+
+  const brand = formatBrand(product.brands);
+
+  const categoryName = kvCategory.pathDisplay.split('.').at(-1);
+
+  if (!categoryName) {
+    return;
+  }
+
+  const productInsertResponse = await supabase
+    .from('products')
+    .insert({
+      name: productName,
+      brand,
+      barcode,
+      amount: quantity?.amount,
+      unit: quantity?.unit,
+      source_ref: barcode,
+      source_id: 1,
+      expiry_type: kvCategory.expiryType,
+      storage_location: kvCategory.storageLocation,
+      category_id: parseInt(categoryId, 10),
+      countries: ['GB'],
+    })
+    .select('id')
+    .single();
+
+  if (productInsertResponse.error || !productInsertResponse.data) {
+    return;
+  }
+
+  return {
+    id: productInsertResponse.data.id,
+    name: productName,
+    brand: formatBrand(product.brands),
+    category: {
+      id: parseInt(categoryId, 10),
+      name: categoryName,
+      path: getCategoryPath(kvCategory.pathDisplay),
+      recommendedStorageLocation: storageLocationFieldMapper.toUI(
+        kvCategory.storageLocation,
+      ),
+    },
+    icon: kvCategory.icon,
+    ...(quantity?.hasSupportedUnit && {
+      amount: quantity.amount,
+      unit: quantity.unit,
+    }),
   };
 };

@@ -38,6 +38,10 @@ export const RefinedProductSearchItemSchema = z.object({
   icon: z.string(),
 });
 
+export type RefinedProductSearchItem = z.infer<
+  typeof RefinedProductSearchItemSchema
+>;
+
 export const RefinedProductSearchItemsSchema = z.array(
   RefinedProductSearchItemSchema,
 );

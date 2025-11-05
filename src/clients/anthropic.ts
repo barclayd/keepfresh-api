@@ -16,7 +16,7 @@ export const getCategoryIdForOpenFoodFactsItem = async ({
   userCategories: string[];
 }) => {
   const message = await anthropic.messages.create({
-    model: 'claude-haiku-4-20250514',
+    model: 'claude-haiku-4-5',
     max_tokens: 50,
     system: [
       {
@@ -46,7 +46,7 @@ Return ONLY the category ID number (e.g., 88). Nothing else.`,
         role: 'user',
         content: `Product Name: ${productName}
 Brand: ${brand}
-User Categories: ${JSON.stringify(userCategories)}
+User Categories: ${userCategories.join(', ')}
 
 IMPORTANT: The user categories may be wrong. Base your decision primarily on the product name and brand.
 

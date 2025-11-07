@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { CATEGORIES_DATA } from '@/config/categories';
 import { env } from '@/config/env';
+import { CATEGORIES_DATA } from '@/data/categories';
 
 const anthropic = new Anthropic({
   apiKey: env.ANTHROPIC_API_KEY,

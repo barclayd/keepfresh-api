@@ -89,6 +89,47 @@ export type Database = {
         };
         Relationships: [];
       };
+      device_tokens: {
+        Row: {
+          app_version: string | null;
+          created_at: string;
+          environment: string;
+          id: number;
+          last_used_at: string | null;
+          platform: string | null;
+          token: string;
+          user_id: string;
+        };
+        Insert: {
+          app_version?: string | null;
+          created_at?: string;
+          environment?: string;
+          id?: number;
+          last_used_at?: string | null;
+          platform?: string | null;
+          token: string;
+          user_id: string;
+        };
+        Update: {
+          app_version?: string | null;
+          created_at?: string;
+          environment?: string;
+          id?: number;
+          last_used_at?: string | null;
+          platform?: string | null;
+          token?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'device_tokens_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       inventory_item_events: {
         Row: {
           category_path: unknown;
@@ -267,6 +308,7 @@ export type Database = {
           amount: number | null;
           barcode: string | null;
           brand: string;
+          brand_lower: string | null;
           category_id: number;
           category_path_display: string;
           countries: string[] | null;
@@ -275,9 +317,12 @@ export type Database = {
           id: number;
           lifespan_in_days: number | null;
           name: string;
+          name_lower: string | null;
           search_text: string | null;
           search_vector: unknown;
           source_id: number;
+          source_name: string | null;
+          source_name_lower: string | null;
           source_ref: string;
           storage_location: Database['public']['Enums']['storage_location'];
           unit: Database['public']['Enums']['unit'] | null;
@@ -287,6 +332,7 @@ export type Database = {
           amount?: number | null;
           barcode?: string | null;
           brand: string;
+          brand_lower?: string | null;
           category_id: number;
           category_path_display?: string | null;
           countries?: string[] | null;
@@ -295,9 +341,12 @@ export type Database = {
           id?: number;
           lifespan_in_days?: number | null;
           name: string;
+          name_lower?: string | null;
           search_text?: string | null;
           search_vector?: unknown;
           source_id: number;
+          source_name?: string | null;
+          source_name_lower?: string | null;
           source_ref: string;
           storage_location: Database['public']['Enums']['storage_location'];
           unit?: Database['public']['Enums']['unit'] | null;
@@ -307,17 +356,21 @@ export type Database = {
           amount?: number | null;
           barcode?: string | null;
           brand?: string;
+          brand_lower?: string | null;
           category_id?: number;
-          category_path_display?: string;
+          category_path_display?: string | null;
           countries?: string[] | null;
           created_at?: string;
           expiry_type?: Database['public']['Enums']['expiry_type'];
           id?: number;
           lifespan_in_days?: number | null;
           name?: string;
+          name_lower?: string | null;
           search_text?: string | null;
           search_vector?: unknown;
           source_id?: number;
+          source_name?: string | null;
+          source_name_lower?: string | null;
           source_ref?: string;
           storage_location?: Database['public']['Enums']['storage_location'];
           unit?: Database['public']['Enums']['unit'] | null;

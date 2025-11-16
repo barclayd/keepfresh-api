@@ -687,7 +687,7 @@ export const createV2Routes = () => {
       );
     }
 
-    const shoppingItems = ShoppingItemsSchema.parse(
+    const result = ShoppingItemsSchema.safeParse(
       shoppingItemsResponse.data.map((shoppingItem) => {
         const { id, createdAt, updatedAt, storageLocation, product } =
           objectToCamel(shoppingItem);
@@ -705,7 +705,16 @@ export const createV2Routes = () => {
       }),
     );
 
-    return c.json(shoppingItems, 200);
+    if (!result.success) {
+      return c.json(
+        {
+          error: `Error occurred creating shopping item(s). Error=${JSON.stringify(result.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(result.data, 200);
   });
 
   app.openapi(routes.shopping.update, async (c) => {

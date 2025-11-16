@@ -48,7 +48,8 @@ export const createV1Routes = () => {
         id,
         name,
         icon,
-        path_display
+        path_display,
+        expiry_type
       ),
       amount,
       unit

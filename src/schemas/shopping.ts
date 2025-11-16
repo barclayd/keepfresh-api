@@ -12,7 +12,7 @@ export const ShoppingItemSchema = z.object({
   id: z.int(),
   createdAt: timestampzTransformer,
   updatedAt: timestampzTransformer,
-  title: nullToUndefined(z.string()),
+  title: nullToUndefined(z.string()).optional(),
   status: ShoppingItemStatus,
   source: ShoppingItemSource,
   storageLocation: storageLocationFieldMapper.outputSchema,

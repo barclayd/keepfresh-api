@@ -11,6 +11,11 @@ import {
   PaginatedProductSearchSchema,
   RefinedProductSearchItemSchema,
 } from '@/schemas/product';
+import {
+  ShoppingItemInputSchema,
+  ShoppingItemsSchema,
+  ShoppingItemUpdateSchema,
+} from '@/schemas/shopping';
 import { InventoryItemStatus } from '@/types/category';
 import { storageLocationFieldMapper } from '@/utils/field-mapper';
 
@@ -299,6 +304,175 @@ export const routes = {
             },
           },
           description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+  },
+  shopping: {
+    get: createRoute({
+      method: 'get',
+      path: '/shopping',
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: ShoppingItemsSchema,
+            },
+          },
+          description: 'Success response from KeepFresh API /shopping',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                error: z.string(),
+                details: z
+                  .array(
+                    z.object({
+                      field: z.string(),
+                      message: z.string(),
+                    }),
+                  )
+                  .optional(),
+              }),
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+        401: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                error: z.string(),
+                details: z
+                  .array(
+                    z.object({
+                      field: z.string(),
+                      message: z.string(),
+                    }),
+                  )
+                  .optional(),
+              }),
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    add: createRoute({
+      method: 'post',
+      path: '/shopping/items',
+      request: {
+        body: {
+          content: {
+            'application/json': {
+              schema: ShoppingItemInputSchema,
+            },
+          },
+        },
+      },
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: ShoppingItemsSchema,
+            },
+          },
+          description: 'Success response from KeepFresh API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+        401: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['401'],
+            },
+          },
+          description: 'Authorization error response from Grocery Item API',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    update: createRoute({
+      method: 'patch',
+      path: '/shopping/items/{shoppingItemId}',
+      request: {
+        params: z.object({
+          shoppingItemId: z.coerce.number(),
+        }),
+        body: {
+          content: {
+            'application/json': {
+              schema: ShoppingItemUpdateSchema,
+            },
+          },
+        },
+      },
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        204: {
+          description: 'Successfully updated shopping item',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+        401: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['401'],
+            },
+          },
+          description: 'Authorization error response from Grocery Item API',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    delete: createRoute({
+      method: 'delete',
+      path: '/shopping/items/{shoppingItemId}',
+      request: {
+        params: z.object({
+          shoppingItemId: z.coerce.number(),
+        }),
+      },
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        204: {
+          description: 'Successfully deleted inventory item',
+        },
+        400: {
+          description: 'Error occurred when deleting inventory item',
         },
       },
       security: [

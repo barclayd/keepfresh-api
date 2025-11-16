@@ -1,6 +1,6 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
-import { objectToSnake } from 'ts-case-convert';
+import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { getRefinedProductByBarcode } from '@/clients/open-food-facts';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/v2/routes';
@@ -9,6 +9,7 @@ import {
   RefinedProductSearchItemSchema,
   RefinedProductSearchItemsSchema,
 } from '@/schemas/product';
+import { ShoppingItemsSchema } from '@/schemas/shopping';
 import type { HonoEnvironment } from '@/types/hono';
 import { calculateDaysBetween } from '@/utils/date';
 import logger from '@/utils/logger';
@@ -60,7 +61,6 @@ export const createV2Routes = () => {
                 (item) => item.id,
               ),
             }),
-        count: inventoryItemsResponse.data.length,
       },
       200,
     );
@@ -482,7 +482,7 @@ export const createV2Routes = () => {
           icon
         )
       `)
-      .eq('barcode', barcode)
+      .in('barcode', [barcode, `0${barcode}`])
       .single();
 
     if (error || !data) {
@@ -581,6 +581,198 @@ export const createV2Routes = () => {
     });
 
     return c.json(product, 200);
+  });
+
+  app.openapi(routes.shopping.get, async (c) => {
+    const userId = c.get('userId');
+
+    const { data, error } = await c
+      .get('supabase')
+      .from('shopping_items')
+      .select(`
+    id,
+    created_at,
+    updated_at,
+    status,
+    title,
+    source,
+    storage_location,
+    product:products (
+      id,
+      name,
+      brand,
+      category:categories (
+        id,
+        name,
+        icon,
+        path_display
+      ),
+      amount,
+      unit
+    )
+  `)
+      .eq('user_id', userId)
+      .eq('status', 'created');
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving shopping items. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const shoppingItems = ShoppingItemsSchema.safeParse(objectToCamel(data));
+
+    if (!shoppingItems.success) {
+      return c.json(
+        {
+          error: `Error occurred parsing shopping items. Error=${JSON.stringify(shoppingItems.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(shoppingItems.data, 200);
+  });
+
+  app.openapi(routes.shopping.add, async (c) => {
+    const { title, productId, storageLocation, source, quantity } =
+      c.req.valid('json');
+
+    const userId = c.get('userId');
+
+    const shoppingItemsToInsert = Array.from({ length: quantity }, () => ({
+      product_id: productId,
+      user_id: userId,
+      source,
+      title,
+      storage_location: storageLocation,
+      status: 'created',
+    }));
+
+    const shoppingItemsResponse = await c
+      .get('supabase')
+      .from('shopping_items')
+      .insert(shoppingItemsToInsert)
+      .select(
+        `
+    id,
+    created_at,
+    updated_at,
+    storage_location,
+    product:products (
+      id,
+      name,
+      brand,
+      category:categories (
+        id,
+        name,
+        icon,
+        path_display
+      ),
+      amount,
+      unit
+    )
+  `,
+      );
+
+    if (shoppingItemsResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred creating shopping item(s). Error=${JSON.stringify(shoppingItemsResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const result = ShoppingItemsSchema.safeParse(
+      shoppingItemsResponse.data.map((shoppingItem) => {
+        const { id, createdAt, updatedAt, storageLocation, product } =
+          objectToCamel(shoppingItem);
+
+        return {
+          id,
+          createdAt,
+          updatedAt,
+          title,
+          status: 'created',
+          source,
+          storageLocation,
+          product,
+        };
+      }),
+    );
+
+    if (!result.success) {
+      return c.json(
+        {
+          error: `Error occurred creating shopping item(s). Error=${JSON.stringify(result.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(result.data, 200);
+  });
+
+  app.openapi(routes.shopping.update, async (c) => {
+    const { shoppingItemId } = c.req.valid('param');
+
+    const { status, title, storageLocation } = c.req.valid('json');
+
+    const userId = c.get('userId');
+
+    const { error } = await c
+      .get('supabase')
+      .from('shopping_items')
+      .update({
+        ...(storageLocation && {
+          storage_location: storageLocation,
+        }),
+        ...(status && { status }),
+        ...(title && { title }),
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', shoppingItemId)
+      .eq('user_id', userId);
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error occurred updating inventory item. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.body(null, 204);
+  });
+
+  app.openapi(routes.shopping.delete, async (c) => {
+    const { shoppingItemId } = c.req.valid('param');
+
+    const userId = c.get('userId');
+
+    const response = await c
+      .get('supabase')
+      .from('shopping_items')
+      .delete()
+      .eq('id', shoppingItemId)
+      .eq('user_id', userId)
+      .single();
+
+    if (response.error) {
+      return c.json(
+        {
+          error: `Error occurred deleting shopping item. Error=${JSON.stringify(response.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.body(null, 204);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

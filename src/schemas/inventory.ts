@@ -101,6 +101,7 @@ export const InventoryItemsSchema = z.array(
         id: z.int(),
         name: z.string(),
         pathDisplay: z.string(),
+        expiryType: expiryTypeFieldMapper.outputSchema,
       }),
     }),
   }),

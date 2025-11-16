@@ -724,7 +724,7 @@ export const createV2Routes = () => {
         }),
         ...(status && { status }),
         ...(title && { title }),
-        updatedAt: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
       .eq('id', shoppingItemId)
       .eq('user_id', userId);

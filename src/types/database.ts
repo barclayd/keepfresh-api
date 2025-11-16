@@ -397,9 +397,10 @@ export type Database = {
         Row: {
           created_at: string;
           id: number;
-          location: string | null;
+          location: Database['public']['Enums']['storage_location'];
           product_id: number | null;
           source: string;
+          status: string;
           title: string | null;
           updated_at: string;
           user_id: string;
@@ -407,9 +408,10 @@ export type Database = {
         Insert: {
           created_at?: string;
           id?: number;
-          location?: string | null;
+          location: Database['public']['Enums']['storage_location'];
           product_id?: number | null;
           source: string;
+          status: string;
           title?: string | null;
           updated_at?: string;
           user_id: string;
@@ -417,9 +419,10 @@ export type Database = {
         Update: {
           created_at?: string;
           id?: number;
-          location?: string | null;
+          location?: Database['public']['Enums']['storage_location'];
           product_id?: number | null;
           source?: string;
+          status?: string;
           title?: string | null;
           updated_at?: string;
           user_id?: string;

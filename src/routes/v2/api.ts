@@ -750,6 +750,31 @@ export const createV2Routes = () => {
     return c.body(null, 204);
   });
 
+  app.openapi(routes.shopping.delete, async (c) => {
+    const { shoppingItemId } = c.req.valid('param');
+
+    const userId = c.get('userId');
+
+    const response = await c
+      .get('supabase')
+      .from('shopping_items')
+      .delete()
+      .eq('id', shoppingItemId)
+      .eq('user_id', userId)
+      .single();
+
+    if (response.error) {
+      return c.json(
+        {
+          error: `Error occurred deleting shopping item. Error=${JSON.stringify(response.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.body(null, 204);
+  });
+
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {
     type: 'http',
     scheme: 'bearer',

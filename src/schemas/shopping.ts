@@ -1,6 +1,9 @@
 import * as z from 'zod';
 import { timestampzTransformer } from '@/schemas/inventory';
-import { storageLocationFieldMapper } from '@/utils/field-mapper';
+import {
+  expiryTypeFieldMapper,
+  storageLocationFieldMapper,
+} from '@/utils/field-mapper';
 
 const ShoppingItemStatus = z.enum(['created', 'completed']);
 const ShoppingItemSource = z.enum(['user', 'ai']);
@@ -28,6 +31,7 @@ export const ShoppingItemSchema = z.object({
         id: z.int(),
         name: z.string(),
         pathDisplay: z.string(),
+        expiryType: expiryTypeFieldMapper.outputSchema,
       }),
     })
     .optional(),

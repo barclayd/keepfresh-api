@@ -605,7 +605,8 @@ export const createV2Routes = () => {
         id,
         name,
         icon,
-        path_display
+        path_display,
+        expiry_type
       ),
       amount,
       unit
@@ -670,7 +671,8 @@ export const createV2Routes = () => {
         id,
         name,
         icon,
-        path_display
+        path_display,
+        expiry_type
       ),
       amount,
       unit

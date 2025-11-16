@@ -596,7 +596,7 @@ export const createV2Routes = () => {
     status,
     title,
     source,
-    location,
+    storage_location,
     product:products (
       id,
       name,
@@ -656,7 +656,27 @@ export const createV2Routes = () => {
       .get('supabase')
       .from('shopping_items')
       .insert(shoppingItemsToInsert)
-      .select('id');
+      .select(
+        `
+    id,
+    created_at,
+    updated_at,
+    storage_location,
+    product:products (
+      id,
+      name,
+      brand,
+      category:categories (
+        id,
+        name,
+        icon,
+        path_display
+      ),
+      amount,
+      unit
+    )
+  `,
+      );
 
     if (shoppingItemsResponse.error) {
       return c.json(
@@ -667,12 +687,25 @@ export const createV2Routes = () => {
       );
     }
 
-    return c.json(
-      {
-        shoppingItemIds: shoppingItemsResponse.data.map((item) => item.id),
-      },
-      200,
+    const shoppingItems = ShoppingItemsSchema.parse(
+      shoppingItemsResponse.data.map((shoppingItem) => {
+        const { id, createdAt, updatedAt, storageLocation, product } =
+          objectToCamel(shoppingItem);
+
+        return {
+          id,
+          createdAt,
+          updatedAt,
+          title,
+          status: 'created',
+          source,
+          storageLocation,
+          product,
+        };
+      }),
     );
+
+    return c.json(shoppingItems, 200);
   });
 
   app.openapi(routes.shopping.update, async (c) => {

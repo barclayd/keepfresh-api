@@ -387,9 +387,7 @@ export const routes = {
         200: {
           content: {
             'application/json': {
-              schema: z.object({
-                shoppingItemIds: z.array(z.int()),
-              }),
+              schema: ShoppingItemsSchema,
             },
           },
           description: 'Success response from KeepFresh API',

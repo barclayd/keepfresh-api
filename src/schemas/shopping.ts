@@ -1,9 +1,9 @@
 import * as z from 'zod';
 import { timestampzTransformer } from '@/schemas/inventory';
+import { storageLocationFieldMapper } from '@/utils/field-mapper';
 
 const ShoppingItemStatus = z.enum(['created', 'completed']);
 const ShoppingItemSource = z.enum(['user', 'ai']);
-const ShoppingItemLocation = z.enum(['pantry', 'fridge', 'freezer', 'other']);
 
 export const ShoppingItemSchema = z.object({
   id: z.int(),
@@ -12,7 +12,7 @@ export const ShoppingItemSchema = z.object({
   title: z.string().nullable(),
   status: ShoppingItemStatus,
   source: ShoppingItemSource,
-  location: ShoppingItemLocation,
+  storageLocation: storageLocationFieldMapper.outputSchema,
   product: z.object({
     id: z.number(),
     name: z.string(),
@@ -29,3 +29,17 @@ export const ShoppingItemSchema = z.object({
 });
 
 export const ShoppingItemsSchema = z.array(ShoppingItemSchema);
+
+export const ShoppingItemInputSchema = z.object({
+  title: z.string().optional(),
+  source: ShoppingItemSource.default('user'),
+  storageLocation: storageLocationFieldMapper.inputSchema,
+  productId: z.int().optional(),
+  quantity: z.number().default(1),
+});
+
+export const ShoppingItemUpdateSchema = z.object({
+  title: z.string().optional(),
+  status: ShoppingItemStatus.optional(),
+  storageLocation: storageLocationFieldMapper.inputSchema.optional(),
+});

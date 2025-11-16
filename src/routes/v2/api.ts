@@ -61,7 +61,6 @@ export const createV2Routes = () => {
                 (item) => item.id,
               ),
             }),
-        count: inventoryItemsResponse.data.length,
       },
       200,
     );
@@ -636,6 +635,77 @@ export const createV2Routes = () => {
     }
 
     return c.json(shoppingItems.data, 200);
+  });
+
+  app.openapi(routes.shopping.add, async (c) => {
+    const { title, productId, storageLocation, source, quantity } =
+      c.req.valid('json');
+
+    const userId = c.get('userId');
+
+    const shoppingItemsToInsert = Array.from({ length: quantity }, () => ({
+      product_id: productId,
+      user_id: userId,
+      source,
+      title,
+      storage_location: storageLocation,
+      status: 'created',
+    }));
+
+    const shoppingItemsResponse = await c
+      .get('supabase')
+      .from('shopping_items')
+      .insert(shoppingItemsToInsert)
+      .select('id');
+
+    if (shoppingItemsResponse.error) {
+      return c.json(
+        {
+          error: `Error occurred creating shopping item(s). Error=${JSON.stringify(shoppingItemsResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(
+      {
+        shoppingItemIds: shoppingItemsResponse.data.map((item) => item.id),
+      },
+      200,
+    );
+  });
+
+  app.openapi(routes.shopping.update, async (c) => {
+    const { shoppingItemId } = c.req.valid('param');
+
+    const { status, title, storageLocation } = c.req.valid('json');
+
+    const userId = c.get('userId');
+
+    const { error } = await c
+      .get('supabase')
+      .from('shopping_items')
+      .update({
+        ...(storageLocation && {
+          storage_location: storageLocation,
+        }),
+        ...(status && { status }),
+        ...(title && { title }),
+        updatedAt: new Date().toISOString(),
+      })
+      .eq('id', shoppingItemId)
+      .eq('user_id', userId);
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error occurred updating inventory item. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.body(null, 204);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

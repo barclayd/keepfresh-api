@@ -5,11 +5,14 @@ import { storageLocationFieldMapper } from '@/utils/field-mapper';
 const ShoppingItemStatus = z.enum(['created', 'completed']);
 const ShoppingItemSource = z.enum(['user', 'ai']);
 
+const nullToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
+  schema.nullable().transform((v) => v ?? undefined);
+
 export const ShoppingItemSchema = z.object({
   id: z.int(),
   createdAt: timestampzTransformer,
   updatedAt: timestampzTransformer,
-  title: z.string().optional(),
+  title: nullToUndefined(z.string()),
   status: ShoppingItemStatus,
   source: ShoppingItemSource,
   storageLocation: storageLocationFieldMapper.outputSchema,
@@ -17,11 +20,11 @@ export const ShoppingItemSchema = z.object({
     .object({
       id: z.number(),
       name: z.string(),
-      unit: z.string().optional(),
+      unit: nullToUndefined(z.string()),
       brand: z.string(),
-      amount: z.number().optional(),
+      amount: nullToUndefined(z.float64()),
       category: z.object({
-        icon: z.string().optional(),
+        icon: nullToUndefined(z.string()),
         id: z.int(),
         name: z.string(),
         pathDisplay: z.string(),

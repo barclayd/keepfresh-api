@@ -1,6 +1,6 @@
 import { OpenAPIHono } from '@hono/zod-openapi';
 import { Scalar } from '@scalar/hono-api-reference';
-import { objectToSnake } from 'ts-case-convert';
+import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { getRefinedProductByBarcode } from '@/clients/open-food-facts';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/v2/routes';
@@ -9,6 +9,7 @@ import {
   RefinedProductSearchItemSchema,
   RefinedProductSearchItemsSchema,
 } from '@/schemas/product';
+import { ShoppingItemsSchema } from '@/schemas/shopping';
 import type { HonoEnvironment } from '@/types/hono';
 import { calculateDaysBetween } from '@/utils/date';
 import logger from '@/utils/logger';
@@ -581,6 +582,60 @@ export const createV2Routes = () => {
     });
 
     return c.json(product, 200);
+  });
+
+  app.openapi(routes.shopping.get, async (c) => {
+    const userId = c.get('userId');
+
+    const { data, error } = await c
+      .get('supabase')
+      .from('shopping_items')
+      .select(`
+    id,
+    created_at,
+    updated_at,
+    status,
+    title,
+    source,
+    location,
+    product:products (
+      id,
+      name,
+      brand,
+      category:categories (
+        id,
+        name,
+        icon,
+        path_display
+      ),
+      amount,
+      unit
+    )
+  `)
+      .eq('user_id', userId)
+      .eq('status', 'created');
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving shopping items. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const shoppingItems = ShoppingItemsSchema.safeParse(objectToCamel(data));
+
+    if (!shoppingItems.success) {
+      return c.json(
+        {
+          error: `Error occurred parsing shopping items. Error=${JSON.stringify(shoppingItems.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(shoppingItems.data, 200);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

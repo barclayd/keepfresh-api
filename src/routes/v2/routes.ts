@@ -11,6 +11,7 @@ import {
   PaginatedProductSearchSchema,
   RefinedProductSearchItemSchema,
 } from '@/schemas/product';
+import { ShoppingItemsSchema } from '@/schemas/shopping';
 import { InventoryItemStatus } from '@/types/category';
 import { storageLocationFieldMapper } from '@/utils/field-mapper';
 
@@ -296,6 +297,64 @@ export const routes = {
           content: {
             'application/json': {
               schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+  },
+  shopping: {
+    get: createRoute({
+      method: 'get',
+      path: '/shopping',
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: ShoppingItemsSchema,
+            },
+          },
+          description: 'Success response from KeepFresh API /shopping',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                error: z.string(),
+                details: z
+                  .array(
+                    z.object({
+                      field: z.string(),
+                      message: z.string(),
+                    }),
+                  )
+                  .optional(),
+              }),
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+        401: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                error: z.string(),
+                details: z
+                  .array(
+                    z.object({
+                      field: z.string(),
+                      message: z.string(),
+                    }),
+                  )
+                  .optional(),
+              }),
             },
           },
           description: 'Error occurred when processing payload',

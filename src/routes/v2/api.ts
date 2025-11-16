@@ -482,7 +482,7 @@ export const createV2Routes = () => {
           icon
         )
       `)
-      .eq('barcode', barcode)
+      .in('barcode', [barcode, `0${barcode}`])
       .single();
 
     if (error || !data) {

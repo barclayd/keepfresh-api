@@ -786,7 +786,7 @@ export const createV2Routes = () => {
 
     const userId = c.get('userId');
 
-    const { data, error } = await c
+    const shoppingItemsResponse = await c
       .get('supabase')
       .from('shopping_items')
       .update({
@@ -800,42 +800,42 @@ export const createV2Routes = () => {
       )
       .single();
 
-    if (error) {
+    if (shoppingItemsResponse.error) {
       return c.json(
         {
-          error: `Error occurred updating inventory item. Error=${JSON.stringify(error)}`,
+          error: `Error occurred updating inventory item. Error=${JSON.stringify(shoppingItemsResponse.error)}`,
         },
         400,
       );
     }
 
-    if (!data.storage_location) {
+    if (!shoppingItemsResponse.data.storage_location) {
       return c.json(
         {
-          error: `Error occurred updating inventory item, no storageLocation found. Error=${JSON.stringify(error)}`,
+          error: `Error occurred updating inventory item, no storageLocation found. Error=${JSON.stringify(shoppingItemsResponse.error)}`,
         },
         400,
       );
     }
 
-    if (!data.product_id) {
+    if (!shoppingItemsResponse.data.product_id) {
       return c.json(
         {
-          error: `Error occurred updating inventory item, no productId found. Error=${JSON.stringify(error)}`,
+          error: `Error occurred updating inventory item, no productId found. Error=${JSON.stringify(shoppingItemsResponse.error)}`,
         },
         400,
       );
     }
 
-    const inventoryItemsResponse = await c
+    const inventoryItemResponse = await c
       .get('supabase')
       .from('inventory_items')
       .insert({
-        storage_location: data.storage_location,
+        storage_location: shoppingItemsResponse.data.storage_location,
         user_id: userId,
-        product_id: data.product_id,
+        product_id: shoppingItemsResponse.data.product_id,
         expiry_date: expiryDate,
-        expiry_type: data.product.category.expiry_type,
+        expiry_type: shoppingItemsResponse.data.product.category.expiry_type,
       })
       .select(`
       id,
@@ -861,22 +861,23 @@ export const createV2Routes = () => {
       ),
       amount,
       unit
-    )`);
+    )`)
+      .single();
 
-    const inventoryItems = InventoryItemSchema.safeParse(
-      objectToCamel(inventoryItemsResponse),
+    const inventoryItem = InventoryItemSchema.safeParse(
+      objectToCamel(inventoryItemResponse),
     );
 
-    if (!inventoryItems.success) {
+    if (!inventoryItem.success) {
       return c.json(
         {
-          error: `Error occurred parsing food items. Error=${JSON.stringify(inventoryItems.error)}`,
+          error: `Error occurred parsing food items. Error=${JSON.stringify(inventoryItem.error)}`,
         },
         400,
       );
     }
 
-    return c.json(inventoryItems.data, 200);
+    return c.json(inventoryItem.data, 200);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

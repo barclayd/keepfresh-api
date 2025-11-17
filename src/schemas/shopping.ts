@@ -5,7 +5,7 @@ import {
   storageLocationFieldMapper,
 } from '@/utils/field-mapper';
 
-const ShoppingItemStatus = z.enum(['created', 'completed']);
+export const ShoppingItemStatus = z.enum(['created', 'completed']);
 const ShoppingItemSource = z.enum(['user', 'ai']);
 
 const nullToUndefined = <T extends z.ZodTypeAny>(schema: T) =>

@@ -78,34 +78,34 @@ export const timestampzTransformer = z
   })
   .pipe(z.iso.datetime());
 
-export const InventoryItemsSchema = z.array(
-  z.object({
+export const InventoryItemSchema = z.object({
+  id: z.number(),
+  createdAt: timestampzTransformer,
+  updatedAt: timestampzTransformer,
+  openedAt: timestampzTransformer.nullable(),
+  status: z.enum(status),
+  storageLocation: storageLocationFieldMapper.outputSchema,
+  consumptionPrediction: z.number(),
+  consumptionPredictionChangedAt: timestampzTransformer.nullable(),
+  expiryDate: timestampzTransformer,
+  expiryType: expiryTypeFieldMapper.outputSchema,
+  product: z.object({
     id: z.number(),
-    createdAt: timestampzTransformer,
-    updatedAt: timestampzTransformer,
-    openedAt: timestampzTransformer.nullable(),
-    status: z.enum(status),
-    storageLocation: storageLocationFieldMapper.outputSchema,
-    consumptionPrediction: z.number(),
-    consumptionPredictionChangedAt: timestampzTransformer.nullable(),
-    expiryDate: timestampzTransformer,
-    expiryType: expiryTypeFieldMapper.outputSchema,
-    product: z.object({
-      id: z.number(),
+    name: z.string(),
+    unit: z.string().nullable(),
+    brand: z.string(),
+    amount: z.number().nullable(),
+    category: z.object({
+      icon: z.string().nullable(),
+      id: z.int(),
       name: z.string(),
-      unit: z.string().nullable(),
-      brand: z.string(),
-      amount: z.number().nullable(),
-      category: z.object({
-        icon: z.string().nullable(),
-        id: z.int(),
-        name: z.string(),
-        pathDisplay: z.string(),
-        expiryType: expiryTypeFieldMapper.outputSchema,
-      }),
+      pathDisplay: z.string(),
+      expiryType: expiryTypeFieldMapper.outputSchema,
     }),
   }),
-);
+});
+
+export const InventoryItemsSchema = z.array(InventoryItemSchema);
 
 export const InventoryItemSuggestions = z.object({
   shelfLifeInDays: z.object({

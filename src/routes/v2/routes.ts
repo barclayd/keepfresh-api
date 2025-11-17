@@ -4,6 +4,7 @@ import { authMiddleware } from '@/middleware/auth';
 import { supabaseMiddleware } from '@/middleware/db';
 import {
   InventoryItemAddResponse,
+  InventoryItemSchema,
   InventoryItemSuggestions,
   RefinedInventoryItemInput,
 } from '@/schemas/inventory';
@@ -469,6 +470,43 @@ export const routes = {
       middleware: [supabaseMiddleware, authMiddleware],
       responses: {
         204: {
+          description: 'Successfully deleted inventory item',
+        },
+        400: {
+          description: 'Error occurred when deleting inventory item',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    complete: createRoute({
+      method: 'post',
+      path: '/shopping/items/{shoppingItemId}/complete',
+      request: {
+        params: z.object({
+          shoppingItemId: z.coerce.number(),
+        }),
+        body: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                expiryDate: z.iso.datetime(),
+              }),
+            },
+          },
+        },
+      },
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: InventoryItemSchema,
+            },
+          },
           description: 'Successfully deleted inventory item',
         },
         400: {

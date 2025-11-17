@@ -483,7 +483,7 @@ export const routes = {
       ],
     }),
     complete: createRoute({
-      method: 'delete',
+      method: 'post',
       path: '/shopping/items/{shoppingItemId}/complete',
       request: {
         params: z.object({

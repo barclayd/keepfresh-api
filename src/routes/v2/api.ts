@@ -795,6 +795,7 @@ export const createV2Routes = () => {
       })
       .eq('id', shoppingItemId)
       .eq('user_id', userId)
+      .neq('status', ShoppingItemStatus.enum.completed)
       .select(
         'storage_location, product_id, product:products!inner(category:categories!inner(expiry_type))',
       )

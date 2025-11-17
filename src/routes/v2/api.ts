@@ -864,14 +864,25 @@ export const createV2Routes = () => {
     )`)
       .single();
 
+    console.log(JSON.stringify(objectToCamel(inventoryItemResponse)));
+
+    if (inventoryItemResponse.error || !inventoryItemResponse.data) {
+      return c.json(
+        {
+          error: `Error occurred creating inventory item. Error=${JSON.stringify(inventoryItemResponse.error)}`,
+        },
+        400,
+      );
+    }
+
     const inventoryItem = InventoryItemSchema.safeParse(
-      objectToCamel(inventoryItemResponse),
+      objectToCamel(inventoryItemResponse.data),
     );
 
     if (!inventoryItem.success) {
       return c.json(
         {
-          error: `Error occurred parsing food items. Error=${JSON.stringify(inventoryItem.error)}`,
+          error: `Error occurred parsing inventory item. Error=${JSON.stringify(inventoryItem.error)}`,
         },
         400,
       );

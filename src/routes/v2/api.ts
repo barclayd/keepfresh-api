@@ -706,9 +706,27 @@ export const createV2Routes = () => {
       )
       .single();
 
-    const shoppingItem = ShoppingItemSchema.safeParse(
-      objectToCamel(shoppingItemsResponse),
-    );
+    if (shoppingItemsResponse.error || !shoppingItemsResponse.data) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product with barcode=${barcode}. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const { id, createdAt, updatedAt, storageLocation, product } =
+      objectToCamel(shoppingItemsResponse.data);
+
+    const shoppingItem = ShoppingItemSchema.safeParse({
+      id,
+      createdAt,
+      updatedAt,
+      status: 'created',
+      source: 'user',
+      storageLocation,
+      product,
+    });
 
     if (!shoppingItem.success) {
       return c.json(

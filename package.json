@@ -11,10 +11,10 @@
     "types:db": "bunx supabase gen types typescript --project-id ajvsqwbowwilmcqyynye > ./src/types/database.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.69.0",
-    "@hono/zod-openapi": "^1.1.4",
-    "@scalar/hono-api-reference": "^0.9.24",
-    "@supabase/supabase-js": "^2.81.1",
+    "@anthropic-ai/sdk": "^0.70.1",
+    "@hono/zod-openapi": "^1.1.5",
+    "@scalar/hono-api-reference": "^0.9.25",
+    "@supabase/supabase-js": "^2.84.0",
     "hono": "^4.10.6",
     "jose": "^6.1.2",
     "pino": "^10.1.0",
@@ -23,10 +23,10 @@
     "zod": "^4.1.11"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.5",
-    "@cloudflare/workers-types": "^4.20251115.0",
+    "@biomejs/biome": "^2.3.6",
+    "@cloudflare/workers-types": "^4.20251120.0",
     "@types/bun": "^1.3.2",
-    "@typescript/native-preview": "^7.0.0-dev.20251116.1"
+    "@typescript/native-preview": "^7.0.0-dev.20251120.1"
   },
   "peerDependencies": {
     "typescript": "^5.9.2"

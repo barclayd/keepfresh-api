@@ -656,7 +656,6 @@ export const createV2Routes = () => {
       .from('products')
       .select(`
         id,
-        name,
         expiry_type,
         storage_location,
         category_id
@@ -680,7 +679,6 @@ export const createV2Routes = () => {
         product_id: data.id,
         user_id: userId,
         source: 'user',
-        title: data.name,
         storage_location: data.storage_location,
         status: 'created',
       })

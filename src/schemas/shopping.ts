@@ -24,6 +24,7 @@ export const ShoppingItemSchema = z.object({
       id: z.number(),
       name: z.string(),
       unit: nullToUndefined(z.string()),
+      barcode: z.string().optional(),
       brand: z.string(),
       amount: nullToUndefined(z.float64()),
       category: z.object({

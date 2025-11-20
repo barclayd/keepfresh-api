@@ -705,7 +705,8 @@ export const createV2Routes = () => {
       unit
     )
   `,
-      );
+      )
+      .single();
 
     const shoppingItem = ShoppingItemSchema.safeParse(
       objectToCamel(shoppingItemsResponse),

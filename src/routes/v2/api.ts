@@ -12,7 +12,11 @@ import {
   RefinedProductSearchItemSchema,
   RefinedProductSearchItemsSchema,
 } from '@/schemas/product';
-import { ShoppingItemStatus, ShoppingItemsSchema } from '@/schemas/shopping';
+import {
+  ShoppingItemSchema,
+  ShoppingItemStatus,
+  ShoppingItemsSchema,
+} from '@/schemas/shopping';
 import type { HonoEnvironment } from '@/types/hono';
 import { calculateDaysBetween } from '@/utils/date';
 import logger from '@/utils/logger';
@@ -639,6 +643,101 @@ export const createV2Routes = () => {
     }
 
     return c.json(shoppingItems.data, 200);
+  });
+
+  app.openapi(routes.shopping.barcode, async (c) => {
+    const { barcode } = c.req.valid('param');
+
+    const supabase = c.get('supabase');
+
+    const userId = c.get('userId');
+
+    const { data, error } = await supabase
+      .from('products')
+      .select(`
+        id,
+        expiry_type,
+        storage_location,
+        category_id
+      `)
+      .in('barcode', [barcode, `0${barcode}`])
+      .single();
+
+    if (error || !data) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product with barcode=${barcode}. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const shoppingItemsResponse = await c
+      .get('supabase')
+      .from('shopping_items')
+      .insert({
+        product_id: data.id,
+        user_id: userId,
+        source: 'user',
+        storage_location: data.storage_location,
+        status: 'created',
+      })
+      .select(
+        `
+    id,
+    created_at,
+    updated_at,
+    storage_location,
+    product:products (
+      id,
+      name,
+      brand,
+      category:categories (
+        id,
+        name,
+        icon,
+        path_display,
+        expiry_type
+      ),
+      amount,
+      unit
+    )
+  `,
+      )
+      .single();
+
+    if (shoppingItemsResponse.error || !shoppingItemsResponse.data) {
+      return c.json(
+        {
+          error: `Error occurred retrieving product with barcode=${barcode}. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const { id, createdAt, updatedAt, storageLocation, product } =
+      objectToCamel(shoppingItemsResponse.data);
+
+    const shoppingItem = ShoppingItemSchema.safeParse({
+      id,
+      createdAt,
+      updatedAt,
+      status: 'created',
+      source: 'user',
+      storageLocation,
+      product,
+    });
+
+    if (!shoppingItem.success) {
+      return c.json(
+        {
+          error: `Error occurred parsing created shopping item. Error=${JSON.stringify(shoppingItem.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(shoppingItem.data, 200);
   });
 
   app.openapi(routes.shopping.add, async (c) => {

@@ -14,6 +14,7 @@ import {
 } from '@/schemas/product';
 import {
   ShoppingItemInputSchema,
+  ShoppingItemSchema,
   ShoppingItemsSchema,
   ShoppingItemUpdateSchema,
 } from '@/schemas/shopping';
@@ -389,6 +390,47 @@ export const routes = {
           content: {
             'application/json': {
               schema: ShoppingItemsSchema,
+            },
+          },
+          description: 'Success response from KeepFresh API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+        401: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['401'],
+            },
+          },
+          description: 'Authorization error response from Grocery Item API',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    barcode: createRoute({
+      method: 'post',
+      path: '/shopping/barcode/{barcode}',
+      request: {
+        params: z.object({
+          barcode: z.string(),
+        }),
+      },
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: ShoppingItemSchema,
             },
           },
           description: 'Success response from KeepFresh API',

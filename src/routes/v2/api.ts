@@ -607,6 +607,7 @@ export const createV2Routes = () => {
     product:products (
       id,
       name,
+      barcode,
       brand,
       category:categories (
         id,
@@ -691,6 +692,7 @@ export const createV2Routes = () => {
     product:products (
       id,
       name,
+      barcode,
       brand,
       category:categories (
         id,
@@ -768,6 +770,7 @@ export const createV2Routes = () => {
     product:products (
       id,
       name,
+      barcode,
       brand,
       category:categories (
         id,

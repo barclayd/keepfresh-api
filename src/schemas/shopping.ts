@@ -43,7 +43,7 @@ export const ShoppingItemsSchema = z.array(ShoppingItemSchema);
 export const ShoppingItemInputSchema = z.object({
   title: z.string().optional(),
   source: ShoppingItemSource.default('user'),
-  storageLocation: storageLocationFieldMapper.inputSchema,
+  storageLocation: storageLocationFieldMapper.inputSchema.optional(),
   productId: z.int().optional(),
   quantity: z.number().default(1),
 });

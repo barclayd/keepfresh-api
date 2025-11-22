@@ -15,16 +15,16 @@ export const ShoppingItemSchema = z.object({
   id: z.int(),
   createdAt: timestampzTransformer,
   updatedAt: timestampzTransformer,
-  title: nullToUndefined(z.string()).optional(),
+  title: nullToUndefined(z.string()),
   status: ShoppingItemStatus,
   source: ShoppingItemSource,
-  storageLocation: storageLocationFieldMapper.outputSchema,
-  product: z
-    .object({
+  storageLocation: storageLocationFieldMapper.outputSchemaOptional,
+  product: nullToUndefined(
+    z.object({
       id: z.number(),
       name: z.string(),
       unit: nullToUndefined(z.string()),
-      barcode: nullToUndefined(z.string()).optional(),
+      barcode: nullToUndefined(z.string()),
       brand: z.string(),
       amount: nullToUndefined(z.float64()),
       category: z.object({
@@ -34,8 +34,8 @@ export const ShoppingItemSchema = z.object({
         pathDisplay: z.string(),
         expiryType: expiryTypeFieldMapper.outputSchema,
       }),
-    })
-    .optional(),
+    }),
+  ),
 });
 
 export const ShoppingItemsSchema = z.array(ShoppingItemSchema);

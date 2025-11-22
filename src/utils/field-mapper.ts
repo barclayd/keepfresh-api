@@ -18,6 +18,17 @@ export const createFieldMapper = <UI extends string, DB extends string>(
   toUI: (value: DB): UI => mappings.toUI[value],
   inputSchema: uiEnum.transform((val) => mappings.toDb[val]),
   outputSchema: dbEnum.transform((val) => mappings.toUI[val]),
+
+  toDbOptional: (value: UI | null | undefined): DB | undefined =>
+    value == null ? undefined : mappings.toDb[value],
+  toUIOptional: (value: DB | null | undefined): UI | undefined =>
+    value == null ? undefined : mappings.toUI[value],
+  inputSchemaOptional: uiEnum
+    .optional()
+    .transform((val) => (val === undefined ? undefined : mappings.toDb[val])),
+  outputSchemaOptional: dbEnum
+    .nullable()
+    .transform((val) => (val == null ? undefined : mappings.toUI[val])),
 });
 
 export const storageLocationFieldMapper = createFieldMapper<

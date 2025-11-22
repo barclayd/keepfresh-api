@@ -9,7 +9,10 @@ export const ShoppingItemStatus = z.enum(['created', 'completed']);
 const ShoppingItemSource = z.enum(['user', 'ai']);
 
 const nullToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
-  schema.nullable().transform((v) => v ?? undefined);
+  schema
+    .nullable()
+    .transform((v) => v ?? undefined)
+    .optional();
 
 export const ShoppingItemSchema = z.object({
   id: z.int(),
@@ -43,7 +46,7 @@ export const ShoppingItemsSchema = z.array(ShoppingItemSchema);
 export const ShoppingItemInputSchema = z.object({
   title: z.string().optional(),
   source: ShoppingItemSource.default('user'),
-  storageLocation: storageLocationFieldMapper.inputSchema,
+  storageLocation: storageLocationFieldMapper.inputSchema.optional(),
   productId: z.int().optional(),
   quantity: z.number().default(1),
 });

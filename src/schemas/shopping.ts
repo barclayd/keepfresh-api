@@ -4,34 +4,29 @@ import {
   expiryTypeFieldMapper,
   storageLocationFieldMapper,
 } from '@/utils/field-mapper';
+import { nullToOptional } from '@/utils/zod';
 
 export const ShoppingItemStatus = z.enum(['created', 'completed']);
 const ShoppingItemSource = z.enum(['user', 'ai']);
-
-const nullToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
-  schema
-    .nullable()
-    .transform((v) => v ?? undefined)
-    .optional();
 
 export const ShoppingItemSchema = z.object({
   id: z.int(),
   createdAt: timestampzTransformer,
   updatedAt: timestampzTransformer,
-  title: nullToUndefined(z.string()),
+  title: nullToOptional(z.string()),
   status: ShoppingItemStatus,
   source: ShoppingItemSource,
   storageLocation: storageLocationFieldMapper.outputSchemaOptional,
-  product: nullToUndefined(
+  product: nullToOptional(
     z.object({
       id: z.number(),
       name: z.string(),
-      unit: nullToUndefined(z.string()),
-      barcode: nullToUndefined(z.string()),
+      unit: nullToOptional(z.string()),
+      barcode: nullToOptional(z.string()),
       brand: z.string(),
-      amount: nullToUndefined(z.float64()),
+      amount: nullToOptional(z.float64()),
       category: z.object({
-        icon: nullToUndefined(z.string()),
+        icon: nullToOptional(z.string()),
         id: z.int(),
         name: z.string(),
         pathDisplay: z.string(),

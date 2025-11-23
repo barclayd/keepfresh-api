@@ -6,6 +6,7 @@ import {
   expiryTypeFieldMapper,
   storageLocationFieldMapper,
 } from '@/utils/field-mapper';
+import { nullToOptional } from '@/utils/zod';
 
 export const ProductInput = z.object({
   name: z.string(),
@@ -82,21 +83,21 @@ export const InventoryItemSchema = z.object({
   id: z.number(),
   createdAt: timestampzTransformer,
   updatedAt: timestampzTransformer,
-  openedAt: timestampzTransformer.nullable(),
+  openedAt: nullToOptional(timestampzTransformer),
   status: z.enum(status),
   storageLocation: storageLocationFieldMapper.outputSchema,
   consumptionPrediction: z.number(),
-  consumptionPredictionChangedAt: timestampzTransformer.nullable(),
+  consumptionPredictionChangedAt: nullToOptional(timestampzTransformer),
   expiryDate: timestampzTransformer,
   expiryType: expiryTypeFieldMapper.outputSchema,
   product: z.object({
     id: z.number(),
     name: z.string(),
-    unit: z.string().nullable(),
+    unit: nullToOptional(z.string()),
     brand: z.string(),
-    amount: z.number().nullable(),
+    amount: nullToOptional(z.number()),
     category: z.object({
-      icon: z.string().nullable(),
+      icon: nullToOptional(z.string()),
       id: z.int(),
       name: z.string(),
       pathDisplay: z.string(),
@@ -110,14 +111,14 @@ export const InventoryItemsSchema = z.array(InventoryItemSchema);
 export const InventoryItemSuggestions = z.object({
   shelfLifeInDays: z.object({
     opened: z.object({
-      pantry: z.int().nullable(),
-      fridge: z.int().nullable(),
-      freezer: z.int().nullable(),
+      pantry: nullToOptional(z.int()),
+      fridge: nullToOptional(z.int()),
+      freezer: nullToOptional(z.int()),
     }),
     unopened: z.object({
-      pantry: z.int().nullable(),
-      fridge: z.int().nullable(),
-      freezer: z.int().nullable(),
+      pantry: nullToOptional(z.int()),
+      fridge: nullToOptional(z.int()),
+      freezer: nullToOptional(z.int()),
     }),
   }),
   expiryType: expiryTypeFieldMapper.outputSchema,

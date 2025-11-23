@@ -1,5 +1,6 @@
 import { z } from '@hono/zod-openapi';
 import { storageLocationFieldMapper } from '@/utils/field-mapper';
+import { nullToOptional } from '@/utils/zod';
 
 export const ProductSearchItemSchema = z.object({
   name: z.string().min(2),
@@ -10,8 +11,8 @@ export const ProductSearchItemSchema = z.object({
     path: z.string(),
     recommendedStorageLocation: storageLocationFieldMapper.outputSchema,
   }),
-  amount: z.number().optional(),
-  unit: z.string().optional(),
+  amount: nullToOptional(z.number()),
+  unit: nullToOptional(z.string()),
   icon: z.string(),
   source: z.object({
     id: z.int(),
@@ -33,8 +34,8 @@ export const RefinedProductSearchItemSchema = z.object({
     path: z.string(),
     recommendedStorageLocation: storageLocationFieldMapper.outputSchema,
   }),
-  amount: z.number().optional(),
-  unit: z.string().optional(),
+  amount: nullToOptional(z.number()),
+  unit: nullToOptional(z.string()),
   icon: z.string(),
 });
 

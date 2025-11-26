@@ -458,9 +458,7 @@ export const createV2Routes = () => {
     return c.json(
       {
         pagination: {
-          hasNext: data[0]
-            ? Math.ceil(data[0].total_count / limit) > page
-            : false,
+          hasNext: data[0]?.has_next ?? false,
         },
         results,
       },

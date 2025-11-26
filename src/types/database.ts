@@ -572,10 +572,10 @@ export type Database = {
           category_name: string;
           category_path_display: string;
           expiry_type: Database['public']['Enums']['expiry_type'];
+          has_next: boolean;
           id: number;
           name: string;
           storage_location: Database['public']['Enums']['storage_location'];
-          total_count: number;
           unit: Database['public']['Enums']['unit'];
         }[];
       };

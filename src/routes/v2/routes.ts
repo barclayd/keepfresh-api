@@ -569,7 +569,17 @@ export const routes = {
       middleware: [authMiddleware],
       request: {
         query: z.object({
-          timeZone: z.string(),
+          timeZone: z.string().refine(
+            (timeZone) => {
+              try {
+                Intl.DateTimeFormat(undefined, { timeZone });
+                return true;
+              } catch {
+                return false;
+              }
+            },
+            { error: (ctx) => `Invalid timezone: ${ctx.input}` },
+          ),
         }),
       },
       responses: {

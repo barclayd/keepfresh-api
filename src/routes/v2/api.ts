@@ -26,6 +26,7 @@ import {
   calculateStandardDeviation,
   toTwoDecimalPlaces,
 } from '@/utils/maths';
+import holidaysJSON from '../../data/holidays.json';
 
 export const createV2Routes = () => {
   const app = new OpenAPIHono<HonoEnvironment>();
@@ -990,6 +991,28 @@ export const createV2Routes = () => {
     }
 
     return c.json(inventoryItem.data, 200);
+  });
+
+  app.openapi(routes.confetti.get, async (c) => {
+    const { timeZone } = c.req.valid('query');
+
+    type HolidayEntry = {
+      name: string;
+      genmoji: string[];
+    };
+
+    const holidays: Record<string, HolidayEntry> = holidaysJSON;
+
+    const now = new Date('2025-11-28T04:55:18.785Z');
+    const dateString = now.toLocaleDateString('en-CA', { timeZone });
+
+    const holiday = holidays[dateString];
+
+    if (!holiday?.genmoji.length) {
+      return c.body(null, 204);
+    }
+
+    return c.json(holiday.genmoji, 200);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

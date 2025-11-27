@@ -562,4 +562,80 @@ export const routes = {
       ],
     }),
   },
+  confetti: {
+    get: createRoute({
+      method: 'get',
+      path: '/confetti',
+      middleware: [authMiddleware],
+      request: {
+        query: z.object({
+          timeZone: z.string().refine(
+            (timeZone) => {
+              try {
+                Intl.DateTimeFormat(undefined, { timeZone });
+                return true;
+              } catch {
+                return false;
+              }
+            },
+            { error: (ctx) => `Invalid timezone: ${ctx.input}` },
+          ),
+        }),
+      },
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: z.array(z.string()),
+            },
+          },
+          description: 'Success response from KeepFresh API /genmoji',
+        },
+        204: {
+          description: 'No genmoji themed for provided timezone',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                error: z.string(),
+                details: z
+                  .array(
+                    z.object({
+                      field: z.string(),
+                      message: z.string(),
+                    }),
+                  )
+                  .optional(),
+              }),
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+        401: {
+          content: {
+            'application/json': {
+              schema: z.object({
+                error: z.string(),
+                details: z
+                  .array(
+                    z.object({
+                      field: z.string(),
+                      message: z.string(),
+                    }),
+                  )
+                  .optional(),
+              }),
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+  },
 };

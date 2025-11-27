@@ -1,0 +1,44 @@
+{
+  "2025-01-01": {
+    "name": "New Year's Day",
+    "genmoji": ["champagne", "grapes"]
+  },
+  "2025-01-29": {
+    "name": "Chinese New Year",
+    "genmoji": ["dumpling", "orange"]
+  },
+  "2025-02-14": {
+    "name": "Valentine's Day",
+    "genmoji": ["chocolate", "strawberry"]
+  },
+  "2025-03-17": { "name": "St. Patrick's Day", "genmoji": ["beer", "cabbage"] },
+  "2025-04-20": {
+    "name": "Easter Sunday",
+    "genmoji": ["egg", "chocolate_bunny", "hot_cross_bun"]
+  },
+  "2025-05-05": {
+    "name": "Cinco de Mayo",
+    "genmoji": ["taco", "guacamole", "lime"]
+  },
+  "2025-07-04": {
+    "name": "US Independence Day",
+    "genmoji": ["hot_dog", "hamburger", "corn_on_cob", "watermelon"]
+  },
+  "2025-10-31": {
+    "name": "Halloween",
+    "genmoji": ["pumpkin", "candy_corn", "apple"]
+  },
+  "2025-11-27": {
+    "name": "Thanksgiving",
+    "genmoji": ["turkey", "stuffing", "cranberry sauce"]
+  },
+  "2025-12-24": {
+    "name": "Christmas Eve",
+    "genmoji": ["mince_pie", "milk", "cookies"]
+  },
+  "2025-12-25": {
+    "name": "Christmas Day",
+    "genmoji": ["turkey", "brussels_sprouts", "stuffing", "christmas_pudding"]
+  },
+  "2025-12-31": { "name": "New Year's Eve", "genmoji": ["champagne", "grapes"] }
+}

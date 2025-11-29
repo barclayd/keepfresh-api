@@ -1008,8 +1008,6 @@ export const createV2Routes = () => {
 
     const dateString = now.toLocaleDateString('en-CA', { timeZone });
 
-    console.log('dateString', dateString);
-
     const holiday = holidays[dateString];
 
     if (!holiday?.genmoji.length) {

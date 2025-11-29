@@ -1004,7 +1004,7 @@ export const createV2Routes = () => {
 
     const holidays: Record<string, HolidayEntry> = holidaysJSON;
 
-    const now = new Date('2025-12-25');
+    const now = new Date();
     const dateString = now.toLocaleDateString('en-CA', { timeZone });
 
     const holiday = holidays[dateString];
@@ -1015,33 +1015,19 @@ export const createV2Routes = () => {
       return c.body(null, 204);
     }
 
-    // const results = (
-    //   await Promise.all(
-    //     holiday.genmoji.map(async (name) => {
-    //       const genmoji = await c.env.keepfresh_genmoji.get<Genmoji>(
-    //         `genmoji:${name.toLowerCase()}`,
-    //         'json',
-    //       );
-    //       return genmoji ? { name, genmoji } : [];
-    //     }),
-    //   )
-    // ).flat();
-
-    const start = Date.now();
-
     const results = (
       await Promise.all(
         holiday.genmoji.map(async (name) => {
-          const kvStart = Date.now();
           const genmoji = await c.env.keepfresh_genmoji.get<Genmoji>(
             `genmoji:${name.toLowerCase()}`,
             'json',
           );
-          console.log(`KV ${name}: ${Date.now() - kvStart}ms`);
           return genmoji ? { name, genmoji } : [];
         }),
       )
     ).flat();
+
+    const start = Date.now();
 
     console.log(`Total: ${Date.now() - start}ms`);
 

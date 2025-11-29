@@ -4,6 +4,7 @@ import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { getRefinedProductByBarcode } from '@/clients/open-food-facts';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/v2/routes';
+import type { Genmoji } from '@/schemas/genmoji';
 import {
   InventoryItemSchema,
   InventoryItemSuggestions,
@@ -1012,7 +1013,19 @@ export const createV2Routes = () => {
       return c.body(null, 204);
     }
 
-    return c.json(holiday.genmoji, 200);
+    const results = (
+      await Promise.all(
+        holiday.genmoji.map(async (name) => {
+          const genmoji = await c.env.keepfresh_genmoji.get<Genmoji>(
+            `genmoji:${name.toLowerCase()}`,
+            'json',
+          );
+          return genmoji ? { name, genmoji } : [];
+        }),
+      )
+    ).flat();
+
+    return c.json(results, 200);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

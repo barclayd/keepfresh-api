@@ -2,6 +2,7 @@ import { createRoute } from '@hono/zod-openapi';
 import * as z from 'zod';
 import { authMiddleware } from '@/middleware/auth';
 import { supabaseMiddleware } from '@/middleware/db';
+import { GenmojiSchema } from '@/schemas/genmoji';
 import {
   InventoryItemAddResponse,
   InventoryItemSchema,
@@ -586,7 +587,12 @@ export const routes = {
         200: {
           content: {
             'application/json': {
-              schema: z.array(z.string()),
+              schema: z.array(
+                z.object({
+                  name: z.string(),
+                  genmoji: GenmojiSchema,
+                }),
+              ),
             },
           },
           description: 'Success response from KeepFresh API /genmoji',

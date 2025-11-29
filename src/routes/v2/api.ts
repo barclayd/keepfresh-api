@@ -1005,11 +1005,12 @@ export const createV2Routes = () => {
     const holidays: Record<string, HolidayEntry> = holidaysJSON;
 
     const now = new Date();
+
     const dateString = now.toLocaleDateString('en-CA', { timeZone });
 
-    const holiday = holidays[dateString];
+    console.log('dateString', dateString);
 
-    console.log('holiday', holiday);
+    const holiday = holidays[dateString];
 
     if (!holiday?.genmoji.length) {
       return c.body(null, 204);
@@ -1026,10 +1027,6 @@ export const createV2Routes = () => {
         }),
       )
     ).flat();
-
-    const start = Date.now();
-
-    console.log(`Total: ${Date.now() - start}ms`);
 
     return c.json(results, 200);
   });

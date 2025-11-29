@@ -4,6 +4,7 @@ import { objectToCamel, objectToSnake } from 'ts-case-convert';
 import { getRefinedProductByBarcode } from '@/clients/open-food-facts';
 import { getCategoryPath } from '@/helpers/category';
 import { routes } from '@/routes/v2/routes';
+import type { Genmoji } from '@/schemas/genmoji';
 import {
   InventoryItemSchema,
   InventoryItemSuggestions,
@@ -1003,16 +1004,48 @@ export const createV2Routes = () => {
 
     const holidays: Record<string, HolidayEntry> = holidaysJSON;
 
-    const now = new Date();
+    const now = new Date('2025-12-25');
     const dateString = now.toLocaleDateString('en-CA', { timeZone });
 
     const holiday = holidays[dateString];
+
+    console.log('holiday', holiday);
 
     if (!holiday?.genmoji.length) {
       return c.body(null, 204);
     }
 
-    return c.json(holiday.genmoji, 200);
+    // const results = (
+    //   await Promise.all(
+    //     holiday.genmoji.map(async (name) => {
+    //       const genmoji = await c.env.keepfresh_genmoji.get<Genmoji>(
+    //         `genmoji:${name.toLowerCase()}`,
+    //         'json',
+    //       );
+    //       return genmoji ? { name, genmoji } : [];
+    //     }),
+    //   )
+    // ).flat();
+
+    const start = Date.now();
+
+    const results = (
+      await Promise.all(
+        holiday.genmoji.map(async (name) => {
+          const kvStart = Date.now();
+          const genmoji = await c.env.keepfresh_genmoji.get<Genmoji>(
+            `genmoji:${name.toLowerCase()}`,
+            'json',
+          );
+          console.log(`KV ${name}: ${Date.now() - kvStart}ms`);
+          return genmoji ? { name, genmoji } : [];
+        }),
+      )
+    ).flat();
+
+    console.log(`Total: ${Date.now() - start}ms`);
+
+    return c.json(results, 200);
   });
 
   app.openAPIRegistry.registerComponent('securitySchemes', 'Bearer', {

@@ -1004,7 +1004,7 @@ export const createV2Routes = () => {
 
     const holidays: Record<string, HolidayEntry> = holidaysJSON;
 
-    const now = new Date('2025-12-25');
+    const now = new Date();
     const dateString = now.toLocaleDateString('en-CA', { timeZone });
 
     const holiday = holidays[dateString];

@@ -8,6 +8,7 @@ import type { Genmoji } from '@/schemas/genmoji';
 import {
   InventoryItemSchema,
   InventoryItemSuggestions,
+  InventoryItemsSchema,
 } from '@/schemas/inventory';
 import {
   RefinedProductSearchItemSchema,
@@ -18,6 +19,7 @@ import {
   ShoppingItemStatus,
   ShoppingItemsSchema,
 } from '@/schemas/shopping';
+import { InactiveInventoryItemStatus } from '@/types/category';
 import type { HonoEnvironment } from '@/types/hono';
 import { calculateDaysBetween } from '@/utils/date';
 import logger from '@/utils/logger';
@@ -367,6 +369,66 @@ export const createV2Routes = () => {
       },
       200,
     );
+  });
+
+  app.openapi(routes.inventory.history, async (c) => {
+    const userId = c.get('userId');
+
+    const { data, error } = await c
+      .get('supabase')
+      .from('inventory_items')
+      .select(`
+    id,
+    created_at,
+    updated_at,
+    opened_at,
+    status,
+    storage_location,
+    consumption_prediction,
+    consumption_prediction_changed_at,
+    expiry_date,
+    expiry_type,
+    product:products (
+      id,
+      name,
+      brand,
+      category:categories (
+        id,
+        name,
+        icon,
+        path_display,
+        expiry_type
+      ),
+      amount,
+      unit
+    )
+  `)
+      .eq('user_id', userId)
+      .in('status', InactiveInventoryItemStatus)
+      .order('updated_at', { ascending: false })
+      .limit(10);
+
+    if (error) {
+      return c.json(
+        {
+          error: `Error occurred retrieving food items. Error=${JSON.stringify(error)}`,
+        },
+        400,
+      );
+    }
+
+    const inventoryItems = InventoryItemsSchema.safeParse(objectToCamel(data));
+
+    if (!inventoryItems.success) {
+      return c.json(
+        {
+          error: `Error occurred parsing food items. Error=${JSON.stringify(inventoryItems.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(inventoryItems.data, 200);
   });
 
   app.openapi(routes.products.list, async (c) => {

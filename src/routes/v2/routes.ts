@@ -7,6 +7,7 @@ import {
   InventoryItemAddResponse,
   InventoryItemSchema,
   InventoryItemSuggestions,
+  InventoryItemsSchema,
   RefinedInventoryItemInput,
 } from '@/schemas/inventory';
 import {
@@ -68,6 +69,34 @@ export const routes = {
                 }),
                 suggestions: InventoryItemSuggestions,
               }),
+            },
+          },
+          description: 'Success response from KeepFresh API',
+        },
+        400: {
+          content: {
+            'application/json': {
+              schema: InventoryItemAddResponse['400'],
+            },
+          },
+          description: 'Error occurred when processing payload',
+        },
+      },
+      security: [
+        {
+          Bearer: [],
+        },
+      ],
+    }),
+    history: createRoute({
+      method: 'get',
+      path: '/inventory/items/history',
+      middleware: [supabaseMiddleware, authMiddleware],
+      responses: {
+        200: {
+          content: {
+            'application/json': {
+              schema: InventoryItemsSchema,
             },
           },
           description: 'Success response from KeepFresh API',

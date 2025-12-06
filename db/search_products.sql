@@ -67,8 +67,8 @@ BEGIN
         ORDER BY quick_score DESC
         LIMIT candidate_limit
       ),
-      final_scored AS (
-        SELECT DISTINCT ON (qs.name, qs.brand)
+      scored AS (
+        SELECT
           qs.id, qs.name, qs.brand, qs.storage_location, qs.expiry_type,
           qs.category_id, qs.category_name, qs.category_icon, qs.category_path_display,
           qs.amount, qs.unit,
@@ -91,7 +91,18 @@ BEGIN
             similarity(qs.search_text, search_lower) * 0.1
           ) AS final_score
         FROM quick_scored qs
-        ORDER BY qs.name, qs.brand, final_score DESC
+      ),
+      dedupe_name_brand AS (
+        SELECT DISTINCT ON (s.name, s.brand)
+          s.*
+        FROM scored s
+        ORDER BY s.name, s.brand, s.final_score DESC
+      ),
+      final_scored AS (
+        SELECT DISTINCT ON (d.id)
+          d.*
+        FROM dedupe_name_brand d
+        ORDER BY d.id, d.final_score DESC
       ),
       paginated AS (
         SELECT fs.*, ROW_NUMBER() OVER (ORDER BY fs.final_score DESC) AS rn
@@ -141,8 +152,8 @@ ELSE
         ORDER BY quick_score DESC
         LIMIT candidate_limit
       ),
-      final_scored AS (
-        SELECT DISTINCT ON (qs.name, qs.brand)
+      scored AS (
+        SELECT
           qs.id, qs.name, qs.brand, qs.storage_location, qs.expiry_type,
           qs.category_id, qs.category_name, qs.category_icon, qs.category_path_display,
           qs.amount, qs.unit,
@@ -165,7 +176,19 @@ ELSE
             similarity(qs.search_text, search_lower) * 0.1
           ) AS final_score
         FROM quick_scored qs
-        ORDER BY qs.name, qs.brand, final_score DESC
+      ),
+      -- First: dedupe by name+brand, keeping highest score
+      dedupe_name_brand AS (
+        SELECT DISTINCT ON (s.name, s.brand)
+          s.*
+        FROM scored s
+        ORDER BY s.name, s.brand, s.final_score DESC
+      ),
+      final_scored AS (
+        SELECT DISTINCT ON (d.id)
+          d.*
+        FROM dedupe_name_brand d
+        ORDER BY d.id, d.final_score DESC
       ),
       paginated AS (
         SELECT fs.*, ROW_NUMBER() OVER (ORDER BY fs.final_score DESC) AS rn

@@ -44,3 +44,7 @@ export const InventoryItemStatus: Array<InventoryItemStatus> = [
 export const ActiveInventoryItemStatus: Array<
   Exclude<InventoryItemStatus, 'consumed' | 'discarded'>
 > = ['unopened', 'opened'];
+
+export const InactiveInventoryItemStatus: Array<
+  Exclude<InventoryItemStatus, 'unopened' | 'opened'>
+> = ['discarded', 'consumed'];

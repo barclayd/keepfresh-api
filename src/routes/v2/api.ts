@@ -372,9 +372,11 @@ export const createV2Routes = () => {
   });
 
   app.openapi(routes.inventory.history, async (c) => {
+    const { cursor } = c.req.valid('query');
+
     const userId = c.get('userId');
 
-    const { data, error } = await c
+    let query = c
       .get('supabase')
       .from('inventory_items')
       .select(`
@@ -407,6 +409,12 @@ export const createV2Routes = () => {
       .in('status', InactiveInventoryItemStatus)
       .order('updated_at', { ascending: false })
       .limit(10);
+
+    if (cursor) {
+      query = query.lt('updated_at', cursor);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       return c.json(

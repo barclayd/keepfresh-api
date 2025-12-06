@@ -92,6 +92,11 @@ export const routes = {
       method: 'get',
       path: '/inventory/history',
       middleware: [supabaseMiddleware, authMiddleware],
+      request: {
+        query: z.object({
+          cursor: z.iso.datetime().optional(),
+        }),
+      },
       responses: {
         200: {
           content: {

@@ -90,7 +90,7 @@ export const routes = {
     }),
     history: createRoute({
       method: 'get',
-      path: '/inventory/items/history',
+      path: '/inventory/history',
       middleware: [supabaseMiddleware, authMiddleware],
       responses: {
         200: {

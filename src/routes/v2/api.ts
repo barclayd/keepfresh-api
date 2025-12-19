@@ -1037,8 +1037,6 @@ export const createV2Routes = () => {
     )`)
       .single();
 
-    console.log(JSON.stringify(objectToCamel(inventoryItemResponse)));
-
     if (inventoryItemResponse.error || !inventoryItemResponse.data) {
       return c.json(
         {
@@ -1062,6 +1060,128 @@ export const createV2Routes = () => {
     }
 
     return c.json(inventoryItem.data, 200);
+  });
+
+  app.openapi(routes.shopping.session.add, async (c) => {
+    const { createdAt, updatedAt, shoppingItems } = c.req.valid('json');
+
+    const userId = c.get('userId');
+
+    const { data: session, error: sessionCreationError } = await c
+      .get('supabase')
+      .from('shopping_sessions')
+      .insert({ user_id: userId, created_at: createdAt, updated_at: updatedAt })
+      .select('id')
+      .single();
+
+    if (sessionCreationError) {
+      return c.json(
+        {
+          error: `Error occurred creating shopping session. Error=${JSON.stringify(sessionCreationError)}`,
+        },
+        400,
+      );
+    }
+
+    const { data: updatedShoppingItems, error: updatedShoppingItemsError } =
+      await c
+        .get('supabase')
+        .from('shopping_items')
+        .update({
+          shopping_session_id: session.id,
+          updated_at: updatedAt,
+          status: 'completed',
+        })
+        .in(
+          'id',
+          shoppingItems.map((shoppingItem) => shoppingItem.shoppingItemId),
+        )
+        .select('id, product_id, storage_location');
+
+    if (!updatedShoppingItems || updatedShoppingItemsError) {
+      return c.json(
+        {
+          error: `Error occurred updating shopping items within shopping session. Error=${JSON.stringify(updatedShoppingItemsError)}`,
+        },
+        400,
+      );
+    }
+
+    const expiryByItemId = new Map(
+      shoppingItems.map((item) => [item.shoppingItemId, item.expiryDate]),
+    );
+
+    const inventoryItemsToInsert = updatedShoppingItems
+      .filter(
+        (
+          item,
+        ): item is typeof item & {
+          product_id: number;
+          storage_location: 'pantry' | 'fridge' | 'freezer';
+        } => item.product_id !== null && item.storage_location !== null,
+      )
+      .map((item) => ({
+        product_id: item.product_id,
+        storage_location: item.storage_location,
+        expiry_date: expiryByItemId.get(item.id),
+        user_id: userId,
+      }));
+
+    const inventoryItemsResponse = await c
+      .get('supabase')
+      .from('inventory_items')
+      .insert(inventoryItemsToInsert)
+      .select(`
+      id,
+    created_at,
+    updated_at,
+    opened_at,
+    status,
+    storage_location,
+    consumption_prediction,
+    consumption_prediction_changed_at,
+    expiry_date,
+    expiry_type,
+    product:products (
+      id,
+      name,
+      brand,
+      category:categories (
+        id,
+        name,
+        icon,
+        path_display,
+        expiry_type
+      ),
+      amount,
+      unit
+    )`);
+
+    if (inventoryItemsResponse.error || !inventoryItemsResponse.data) {
+      return c.json(
+        {
+          error: `Error occurred creating inventory item. Error=${JSON.stringify(inventoryItemsResponse.error)}`,
+        },
+        400,
+      );
+    }
+
+    const inventoryItems = InventoryItemsSchema.safeParse(
+      inventoryItemsResponse.data.map((inventoryItem) =>
+        objectToCamel(inventoryItem),
+      ),
+    );
+
+    if (!inventoryItems.success) {
+      return c.json(
+        {
+          error: `Error occurred parsing inventory item. Error=${JSON.stringify(inventoryItems.error)}`,
+        },
+        400,
+      );
+    }
+
+    return c.json(inventoryItems.data, 200);
   });
 
   app.openapi(routes.confetti.get, async (c) => {

@@ -19,7 +19,10 @@ import {
   ShoppingItemStatus,
   ShoppingItemsSchema,
 } from '@/schemas/shopping';
-import { InactiveInventoryItemStatus } from '@/types/category';
+import {
+  type ExpiryTypeDb,
+  InactiveInventoryItemStatus,
+} from '@/types/category';
 import type { HonoEnvironment } from '@/types/hono';
 import { calculateDaysBetween } from '@/utils/date';
 import logger from '@/utils/logger';
@@ -1096,7 +1099,14 @@ export const createV2Routes = () => {
           'id',
           shoppingItems.map((shoppingItem) => shoppingItem.shoppingItemId),
         )
-        .select('id, product_id, storage_location');
+        .select(`
+        id,
+        storage_location,
+         product:products (
+          id,
+          expiry_type
+        )
+        `);
 
     if (!updatedShoppingItems || updatedShoppingItemsError) {
       return c.json(
@@ -1116,12 +1126,16 @@ export const createV2Routes = () => {
         (
           item,
         ): item is typeof item & {
-          product_id: number;
+          product: {
+            id: number;
+            expiry_type: ExpiryTypeDb;
+          };
           storage_location: 'pantry' | 'fridge' | 'freezer';
-        } => item.product_id !== null && item.storage_location !== null,
+        } => item.product?.id !== null && item.storage_location !== null,
       )
       .map((item) => ({
-        product_id: item.product_id,
+        product_id: item.product.id,
+        expiry_type: item.product.expiry_type,
         storage_location: item.storage_location,
         expiry_date: expiryByItemId.get(item.id),
         user_id: userId,

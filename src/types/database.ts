@@ -398,6 +398,7 @@ export type Database = {
           created_at: string;
           id: number;
           product_id: number | null;
+          shopping_session_id: number | null;
           source: string;
           status: string;
           storage_location:
@@ -411,6 +412,7 @@ export type Database = {
           created_at?: string;
           id?: number;
           product_id?: number | null;
+          shopping_session_id?: number | null;
           source: string;
           status: string;
           storage_location?:
@@ -424,6 +426,7 @@ export type Database = {
           created_at?: string;
           id?: number;
           product_id?: number | null;
+          shopping_session_id?: number | null;
           source?: string;
           status?: string;
           storage_location?:
@@ -442,7 +445,43 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
+            foreignKeyName: 'shopping_items_shopping_session_id_fkey';
+            columns: ['shopping_session_id'];
+            isOneToOne: false;
+            referencedRelation: 'shopping_sessions';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'shopping_items_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'users';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      shopping_sessions: {
+        Row: {
+          created_at: string;
+          id: number;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at: string;
+          id?: number;
+          updated_at: string;
+          user_id?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: number;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'shopping_sessions_user_id_fkey';
             columns: ['user_id'];
             isOneToOne: false;
             referencedRelation: 'users';

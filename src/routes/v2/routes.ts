@@ -596,6 +596,62 @@ export const routes = {
         },
       ],
     }),
+    session: {
+      add: createRoute({
+        method: 'post',
+        path: '/shopping/sessions',
+        request: {
+          body: {
+            content: {
+              'application/json': {
+                schema: z.object({
+                  createdAt: z.iso.datetime(),
+                  updatedAt: z.iso.datetime(),
+                  shoppingItems: z.array(
+                    z.object({
+                      shoppingItemId: z.coerce.number(),
+                      expiryDate: z.iso.datetime().optional(),
+                    }),
+                  ),
+                }),
+              },
+            },
+          },
+        },
+        middleware: [supabaseMiddleware, authMiddleware],
+        responses: {
+          200: {
+            content: {
+              'application/json': {
+                schema: InventoryItemsSchema,
+              },
+            },
+            description: 'Successfully deleted inventory item',
+          },
+          400: {
+            content: {
+              'application/json': {
+                schema: InventoryItemAddResponse['400'],
+              },
+            },
+            description: 'Error occurred when processing payload',
+          },
+          401: {
+            content: {
+              'application/json': {
+                schema: InventoryItemAddResponse['401'],
+              },
+            },
+            description: 'Authorization error response from Grocery Item API',
+          },
+        },
+        security: [
+          {
+            Bearer: [],
+          },
+        ],
+      }),
+    },
   },
   confetti: {
     get: createRoute({

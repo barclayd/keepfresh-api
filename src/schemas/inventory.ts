@@ -86,7 +86,12 @@ export const InventoryItemSchema = z.object({
   openedAt: nullToOptional(timestampzTransformer),
   status: z.enum(status),
   storageLocation: storageLocationFieldMapper.outputSchema,
-  consumptionPrediction: z.number(),
+  // Newly purchased items may not have a prediction yet. Match the app's
+  // initial value until a prediction is calculated, while preserving zero.
+  consumptionPrediction: z
+    .number()
+    .nullable()
+    .transform((value) => value ?? 100),
   consumptionPredictionChangedAt: nullToOptional(timestampzTransformer),
   expiryDate: timestampzTransformer,
   expiryType: expiryTypeFieldMapper.outputSchema,
